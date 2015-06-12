@@ -7,12 +7,6 @@ PyYAML - yaml library
   2) untarball ^^^
   3) 'python setup.py install' (may need to be root)
 
-pcapy - pcap parsing library
-
-  RHEL:
-    1) sudo yum install pcapy
-
-
 bitarray - manipulate C-style bitfields
   RHEL
     1) sudo yum install python-bitarray
