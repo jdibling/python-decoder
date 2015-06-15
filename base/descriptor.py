@@ -7,6 +7,7 @@ class Descriptor(object):
         self.__verbosity = kwargs.get('verbosity', Verbosity.Normal)
         self.__fields = fields
 
+        # set fields
         for field in self.fields():
             # determine if we should show this field based on the field's verbosity setting
             # and the runtime parameters of the decoder
@@ -24,6 +25,7 @@ class Descriptor(object):
             # For now, we'll just disable this feature and display everything
             field.set_shown(True)
 
+        # set endianness
         if 'endian' in kwargs:
             endianness = kwargs['endian'].lower()
             if endianness == 'big':
@@ -32,6 +34,11 @@ class Descriptor(object):
                 self.SetLittleEndian()
             else:
                 raise ValueError("Unexpected value passed for 'endian=' argument on Descriptor: '{0}'".format(kwargs['endian']))
+
+        # check actual size against expected size
+        if 'checksize' in kwargs:
+            if self.WireBytes() != int(kwargs['checksize']):
+                raise RuntimeError("Descriptor expected size of {0} but has an actual size of {1}".format(kwargs['checksize'], self.WireBytes()))
 
     def __iter__ (self):
         return iter(self.fields())

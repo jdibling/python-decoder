@@ -46,6 +46,7 @@ class WireField(BasicField):
         super(WireField, self).__init__(field_name, **kwargs)
         self.__wire_format = wire_format
         self.SetLittleEndian()
+        self.__wireBytes = None
 
     def SetLittleEndian(self):
         self.__endian_format = '<'
@@ -63,7 +64,9 @@ class WireField(BasicField):
         return "{0}{1}".format(self.__endian_format, self.__wire_format)
 
     def WireBytes(self):
-        return calcsize(self.WireFormat())
+        if self.__wireBytes is None:
+            self.__wireBytes = calcsize(self.WireFormat())
+        return self.__wireBytes
 
     def eval(self, payload, contexts, **kwargs):
         payload, decodedField = self._extract(payload, **kwargs)

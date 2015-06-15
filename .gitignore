@@ -1,0 +1,8 @@
+# pyc files
+*.pyc
+
+# vim artfacts
+.*.sw?
+
+# PyCharm artifacts
+.idea/*
