@@ -110,9 +110,9 @@ class Decoder(Decoder):
         """ Provides summary statistics from this Decoder
         """
         return {
-            "filtered": self.__filtered_messages,
-            "allowed": self.__allowed_messages,
-            "total": self.__total_messages
+            "filter-filtered": self.__filtered_messages,
+            "filter-allowed": self.__allowed_messages,
+            "filter-total": self.__total_messages
         }
 
 
