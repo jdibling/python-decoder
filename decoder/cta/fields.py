@@ -1,6 +1,6 @@
-from base.field import BasicField
+from base.field import *
 
-class FreeFormTextField(BasicField):
+class FreeFormTextField(NamedField):
     def __init__(self, field_name, **kwargs):
         super(FreeFormTextField, self).__init__(field_name, **kwargs)
         pass

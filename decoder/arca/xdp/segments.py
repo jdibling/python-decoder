@@ -62,14 +62,14 @@ XdpSegment = {
         WireField('xdp-symbol-seq-num', 'I', type=int),
         WireField('xdp-security-status', 'c'),
         WireField('xdp-halt-condition', 'c'),
-        WireField('xdp-transaction-id', 'I', type=int),
-        WireField('xdp-price-1-unscaled', 'I', type=int),
-        WireField('xdp-price-2-unscaled', 'I', type=int),
-        WireField('xdp-ssr-triggering-exchange-id', 'c'),
-        WireField('xdp-ssr-triggering-volume', 'I', type=int),
-        WireField('xdp-time', 'I', type=int),
-        WireField('xdp-ssr-state', 'c'),
-        WireField('xdp-market-state', 'c'),
-        WireField('xdp-session-state', 'c')
-    ])
+        # WireField('xdp-transaction-id', 'I', type=int),
+        # WireField('xdp-price-1-unscaled', 'I', type=int),
+        # WireField('xdp-price-2-unscaled', 'I', type=int),
+        # WireField('xdp-ssr-triggering-exchange-id', 'c'),
+        # WireField('xdp-ssr-triggering-volume', 'I', type=int),
+        # WireField('xdp-time', 'I', type=int),
+        # WireField('xdp-ssr-state', 'c'),
+        # WireField('xdp-market-state', 'c'),
+        # WireField('xdp-session-state', 'c')
+    ], checksize=22)
 }

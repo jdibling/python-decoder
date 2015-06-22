@@ -372,7 +372,7 @@ class Decoder(Decoder):
             """
             fid_template = fid_fields[0] & 0x03
 
-            fieldContext = {'$md-fid-template': fid_template, 'pcap-recv-timestamp': context['pcap-recv-timestamp'], '#field-num': fieldNum}
+            fieldContext = {'$md-fid-template': fid_template, 'pcapng-recv-timestamp': context['pcapng-recv-timestamp'], '#field-num': fieldNum}
             fnDecodeFieldHeader = self.fieldHeaderJumpTable[fid_template]
             payload = fnDecodeFieldHeader(fieldContext, payload)
 

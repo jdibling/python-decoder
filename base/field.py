@@ -3,8 +3,7 @@ from base.decoder import  Verbosity
 from base.types import *
 
 class BasicField(object):
-    def __init__(self, fieldName, **kwargs):
-        self.__fieldName = fieldName
+    def __init__(self, **kwargs):
         self.__renderer = kwargs.get('type', TrimmedString)
         self.__decoder = kwargs.get('decode_function', self.eval)
         self.__verbosity = kwargs.get ('verbosity', Verbosity.Normal)
@@ -12,14 +11,8 @@ class BasicField(object):
             self.__verbosity = Verbosity.Silent
         self.__shown = True
 
-    def __repr__ (self):
-        return "{0}:'{1}'".format (super (BasicField, self).__repr__ (), self.name())
-
     def eval(self, payload, contexts):
         pass
-
-    def name(self):
-        return self.__fieldName
     def renderer(self):
         return self.__renderer
     def render(self, value):
@@ -32,16 +25,15 @@ class BasicField(object):
         self.__shown = is_shown
     def verbosity(self):
         return self.__verbosity
-    def WireBytes(self):
-        return 0
-    def SetBigEndian(self):
-        pass
-    def SetLittleEndian(self):
-        pass
-    def GetEndian(self):
-        return "None"
 
-class WireField(BasicField):
+class NamedField(BasicField):
+    def __init__(self, fieldName, **kwargs):
+        super(NamedField, self).__init__(**kwargs)
+        self.fieldName = fieldName
+    def name(self):
+        return self.fieldName
+
+class WireField(NamedField):
     def __init__(self, field_name, wire_format, **kwargs):
         super(WireField, self).__init__(field_name, **kwargs)
         self.__wire_format = wire_format
@@ -105,7 +97,7 @@ class LookupField(WireField):
         translated = self.__lookup_map[decoded]
         return self._finalize(payload, translated, contexts, **kwargs)
 
-class ConstantField(BasicField):
+class ConstantField(NamedField):
     def __init__(self, field_name, value, **kwargs):
         super(ConstantField, self).__init__(field_name, **kwargs)
         self.__value = value
@@ -114,7 +106,7 @@ class ConstantField(BasicField):
         decoded[-1].update({self.name(): self.__value})
         return (payload, decoded)
 
-class ComputedField(BasicField):
+class ComputedField(NamedField):
     def __init__(self, field_name, computation, **kwargs):
         super(ComputedField, self).__init__(field_name, **kwargs)
         self.__computer = computation
@@ -125,46 +117,67 @@ class ComputedField(BasicField):
         return (payload, contexts)
 
 class RepeatingGroup(BasicField):
-    def __init__(self, field_name, repr_format, sub_fields, **kwargs):
-        super(RepeatingGroup,self).__init__(field_name, **kwargs)
-        self.__sub_fields= sub_fields
-        self.__send_initial = kwargs.get('send_initial', False)
-        self.__repr_format = repr_format
-        self.__repr_bytes = calcsize(self.__repr_format)
+    class ReprCountFromPayload(object):
+        def __init__(self, fieldFmt):
+            super(RepeatingGroup.ReprCountFromPayload, self).__init__()
+            self.fmt = fieldFmt
+            self.fmtBytes = calcsize(self.fmt)
+        def GetCount(self, payload, context):
+            fields = unpack_from(self.fmt, payload)
+            if len(fields) is not 1:
+                raise ValueError("Internal error decoding ReprCount of RepeatingGroup from wire data")
+            return (int(fields[0]), payload[self.fmtBytes:])
+    class ReprCountFromContext(object):
+        def __init__(self, field):
+            super(RepeatingGroup.ReprCountFromContext, self).__init__()
+            self.field = field
+        def GetCount(self, payload, context):
+            reprCount = context.get(self.field, None)
+            if reprCount is None:
+                raise ValueError("Internal error extracting ReprCount for RepeatingGroup:  '{0}' field not found in context".format(self.field))
 
-    def WireBytes(self):
-        return self.__repr_bytes
+            return int(reprCount), payload
+
+    def __init__(self, sub_fields, reprCounter, **kwargs):
+        super(RepeatingGroup,self).__init__(**kwargs)
+        self.__sub_fields= sub_fields
+        self.__embed = kwargs.get('embed', True)
+        self.reprCounter = reprCounter
+        self.embeddedFieldName = kwargs.get('embed_as', None)
 
     def eval(self, payload, contexts):
-        repCountFields = unpack_from(self.__repr_format, payload)
-        if len(repCountFields) is not 1:
-            raise ValueError("Decoding {0} did not yield a single repCount field".format(self.__toHex(payload[0:self.fieldBytes])))
-        repCount = int(repCountFields[0])
-        payload = payload[self.__repr_bytes:]
-        # grab the initial context where the repeating group exists
-        initial = contexts[-1]
-        # trim the initial from the rest of the contexts (we'll add it back in later)
-        contexts = contexts[0:-1] # this will usually be empty now
-        # if sendInitial, add what we already have back in
-        if self.__send_initial:
-            contexts.append(initial)
+        # get the repr count
+        repCount, payload = self.reprCounter.GetCount(payload, contexts[-1])
+
+        decodedGroups = []
         # decode the repeating group
         for rep in range(0,repCount):
-            # start with a new context based off of initial
-            base = [initial.copy()]
+            decodedFields = [dict()]
             # decode each field
             for sub_field in self.__sub_fields:
-                (payload, base) = sub_field.eval(payload, base)
-            # add the new context(s) back in to the return value
-            contexts.append(base[-1])
+                (payload, decodedFields) = sub_field.eval(payload, decodedFields)
+            # append the decoded fields in this element of the repr group
+            # to an array of decoded elements
+            decodedGroups.append(decodedFields[-1])
+
+        # if we're embedding the decoding repeating group,
+        # then add it to the last context...
+        if self.embeddedFieldName is not None:
+            contexts[-1].update({self.embeddedFieldName: decodedGroups})
+        # otherwise, create a new context for each element of
+        # the repeating group, replacing the initial context
+        # that was passed in
+        else:
+            baseContext = dict()
+            baseContext.update(contexts[-1])
+            retContexts = []
+            for groupElement in decodedGroups:
+                newContext = dict()
+                newContext.update(baseContext)
+                newContext.update(groupElement)
+                retContexts.append(newContext)
+            contexts = retContexts
         # we're done
         return (payload, contexts)
-
-    def __update_context(self, decoded_field, retval):
-        if not retval:
-            retval = [{}]
-        if self.shown():
-            retval[-1].update({self.name(): str(decoded_field)})
-        return retval
 
 

@@ -186,23 +186,22 @@ class Decoder(Decoder):
             WireField('cqs-instrument-type', 'c'),
             WireField('resv', '11s', hidden=True),
             # consolidated data
-            WireField('cqs-participant-id', 'c'),
-            WireField('cqs-prev-close-price-denom', 'c', type=PriceDenominator, verbosity=Verbosity.Verbose),
-            WireField('cqs-prev-close-price-unscaled', '12s', verbosity=Verbosity.Verbose),
-            ComputedField('cqs-prev-close-price', DecDiv ('cqs-prev-close-price-unscaled', 'cqs-prev-close-price-denom')),
-            WireField('cqs-prev-close-price-date', '6s'),
+            WireField('cqs-consolidated-participant-id', 'c'),
+            WireField('cqs-consolidated-prev-close-price-denom', 'c', type=PriceDenominator, verbosity=Verbosity.Verbose),
+            WireField('cqs-consolidated-prev-close-price-unscaled', '12s', verbosity=Verbosity.Verbose),
+            ComputedField('cqs-consolidated-prev-close-price', DecDiv ('cqs-consolidated-prev-close-price-unscaled', 'cqs-consolidated-prev-close-price-denom')),
+            WireField('cqs-consolidated-prev-close-price-date', '6s'),
             WireField('resv', '10s', hidden=True),
             # number of participant data iterations
-            RepeatingGroup('num-iters', '2s', [
-            # WireField('cqs-$num-iters', '2s', type=RepeatingGroup([
+            RepeatingGroup([
                 # participant data
                 WireField('cqs-participant-id', 'c'),
-                WireField('cqs-prev-close-price-denom', 'c', type=PriceDenominator),
-                WireField('cqs-prev-close-price-unscaled', '12s', verbosity=Verbosity.Verbose),
-                ComputedField('cqs-prev-close--price', DecDiv ('cqs-prev-close-price-unscaled', 'cqs-prev-close-price-denom')),
-                WireField('cqs-prev-close-price-date', '6s'),
+                WireField('cqs-participant-prev-close-price-denom', 'c', type=PriceDenominator),
+                WireField('cqs-participant-prev-close-price-unscaled', '12s', verbosity=Verbosity.Verbose),
+                ComputedField('cqs-participant-prev-close--price', DecDiv ('cqs-participant-prev-close-price-unscaled', 'cqs-participant-prev-close-price-denom')),
+                WireField('cqs-participant-prev-close-price-date', '6s'),
                 WireField('resv', '10s', hidden=True),
-            ], send_initial=True),
+            ], RepeatingGroup.ReprCountFromPayload('2s')),
         ])
 
         self.__segmentDescriptors['ConsolidatedEndOfDaySummary'] = Descriptor([
@@ -412,8 +411,6 @@ class Decoder(Decoder):
                     messageDesc = self.__segmentDescriptors[msgDetail[1]]
                     if messageDesc:
                         # decode non-empty payloadsp
-                        bytes = messageDesc.WireBytes()
-                        msgType = msgDetail[1]
                         messages, payload = self.decode_segment(messageDesc, payload)
 
                         for message in messages:

@@ -49,14 +49,22 @@ class Descriptor(object):
     def WireBytes(self):
         ttl=0
         for field in self.__fields:
-            ttl += field.WireBytes()
+            WireBytesOp = getattr(field, "WireBytes", None)
+            if callable(WireBytesOp):
+                ttl += field.WireBytes()
         return ttl
     def SetLittleEndian(self):
         for field in self.fields():
-            field.SetLittleEndian()
+            try:
+                field.SetLittleEndian()
+            except NotImplementedError:
+                pass
     def SetBigEndian(self):
         for field in self.fields():
-            field.SetBigEndian()
-    def GetEndian(self):
-        return self.fields()[0].GetEndian()
+            try:
+                field.SetBigEndian()
+            except NotImplementedError:
+                pass
+    # def GetEndian(self):
+    #     return self.fields()[0].GetEndian()
 

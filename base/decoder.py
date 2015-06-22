@@ -93,10 +93,10 @@ class Decoder(object):
 
           Packets are decoded by a "decoder chain."  Each link in the chain
           handles a different type of data.  For example, wheen doing
-          gap-checking on an ArcaXDBBBO pcap file, there are three links
+          gap-checking on an ArcaXDBBBO pcapng file, there are three links
           in the chain:
 
-              1)  A pcap decoder
+              1)  A pcapng decoder
               2)  An XDP decoder
               3)  A gap-check psudo-decoder
 
