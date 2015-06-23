@@ -1,0 +1,7 @@
+Ver 1.0:
+- Implemented input/udp for multicast join & read
+- Implemented versioning
+- Added support matrix document
+- Implemented CTRL-C handling
+
+

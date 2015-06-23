@@ -59,11 +59,15 @@ class Descriptor(object):
                 field.SetLittleEndian()
             except NotImplementedError:
                 pass
+            except AttributeError:
+                pass
     def SetBigEndian(self):
         for field in self.fields():
             try:
                 field.SetBigEndian()
             except NotImplementedError:
+                pass
+            except AttributeError:
                 pass
     # def GetEndian(self):
     #     return self.fields()[0].GetEndian()

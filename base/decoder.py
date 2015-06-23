@@ -119,6 +119,12 @@ class Decoder(object):
           """
         pass
 
+    def start(self):
+        try:
+            self.run()
+        except InterruptException:
+            return
+
     def dispatch_to_next(self, context, payload):
         if self.next is not None:
             self.next.on_message(context, payload)

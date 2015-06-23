@@ -1,0 +1,22 @@
+Ver 1.0
+  Support Matrix:
+    
+    TYPE    NAME                    DESCRIPTION
+    =====   ======================  ===============
+    input   input/capture/cap       SpryWare capture files
+    input   input/capture/pcap      pcap files
+    input   input/net/udp           multicast recv
+
+    proc    ndq/itch50              TotalView 5.0
+    proc    cta/cqs                 CQS
+    proc    cta/cts                 CTS
+    proc    bats/mpitch             BATS MPITCH
+    proc    phx/nextgen             Pico Market Data Platform (NextGen)
+    proc    spry/mdpacket           SpryWare MDPacket
+    proc    spry/seqfwd_cpp         SeqFwd C++ protocol
+    proc    spry/seqfwd_java        SeqFwd Java protocol
+    proc    arca/bbo                Arca XDP BBO
+
+    output  output/dump             Dump to terminal or file
+    output  output/filter           Filter output based on user-specified criteria
+

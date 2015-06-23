@@ -5,8 +5,10 @@ import yaml
 import os.path
 import sys
 import traceback
+import signal
+import collections
 from base.exceptions import *
-
+from decoder._version import __version__
 
 def reject_key(d, key):
     """Returns a copy of the dictionary with the specified key removed
@@ -24,8 +26,11 @@ class Main(object):
         self.decoders = []
         self.options = {}
         self.enable_debugging = True
+        self.interrupted = False
 
-        pass
+    def signal_handler(self, signal, frame):
+        self.interrupted = True
+        raise InterruptException()
 
     def run(self):
         """ Run the main application
@@ -33,13 +38,18 @@ class Main(object):
         :rtype: none
         """
         try:
+            signal.signal(signal.SIGINT, self.signal_handler)
             self.parse_options()    # Loads global options & initializes the decoders
             print "*** RUNNING ***"
-            self.decoders[0].run()  # Returns when run complete
-            print '*** RUN COMPLETE ***'
+            self.decoders[0].start()  # Returns when run complete or interrupted
+
+            if self.interrupted:
+                print '*** RUN INTERRUPTED ***'
+            else:
+                print '*** RUN COMPLETE ***'
             # Collect & print a run summary if configured to do so
             if self.show_summary is True:
-                summary = {}
+                summary = collections.OrderedDict()
                 print "summarizing"
                 for dec in self.decoders:
                     print "summarizing {0}".format(str(dec))
@@ -119,6 +129,7 @@ class Main(object):
                 len(self.decoders))
 
 if __name__ == '__main__':
+    print "Decoder version {0}".format(__version__)
     app = Main()
     app.run()
     print 'Finished'
