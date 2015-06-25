@@ -6,3 +6,6 @@
 
 # PyCharm artifacts
 .idea/*
+
+# PyDecode tarballs
+PyDecode-*.tar
