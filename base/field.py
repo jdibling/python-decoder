@@ -14,8 +14,9 @@ class BasicField(object):
     def eval(self, payload, contexts):
         pass
 
-    @profile
     def render(self, value):
+#        return value
+
         if self.__renderer is None:
             return value
         return self.__renderer(value)
@@ -60,7 +61,6 @@ class EchoField(NamedField):
         return (payload, contexts)
 
 class WireField(NamedField):
-    @profile
     def __init__(self, field_name, wire_format, **kwargs):
         super(WireField, self).__init__(field_name, **kwargs)
         self.__base_format = wire_format
@@ -68,28 +68,22 @@ class WireField(NamedField):
         self.__wireBytes = None
         self.SetLittleEndian()
 
-    @profile
     def SetLittleEndian(self):
         self.__format = "<{0}".format(self.__base_format)
         self.__wireBytes = calcsize(self.WireFormat())
-    @profile
     def SetBigEndian(self):
         self.__format = ">{0}".format(self.__base_format)
         self.__wireBytes = calcsize(self.WireFormat())
-    @profile
     def WireFormat(self):
         return self.__format
-    @profile
     def WireBytes(self):
         return self.__wireBytes
 
-    @profile
     def eval(self, payload, contexts, **kwargs):
         payload, decodedField = self._extract(payload, **kwargs)
         payload, contexts = self._finalize(payload, decodedField, contexts, **kwargs)
         return (payload, contexts)
 
-    @profile
     def _finalize(self, payload, decoded_field, contexts, **kwargs):
         # update our context
         if self.shown():
@@ -97,7 +91,6 @@ class WireField(NamedField):
         # done
         return (payload, contexts)
 
-    @profile
     def _extract(self, payload, **kwargs):
         # extract the payload
         if not payload:
