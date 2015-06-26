@@ -22,7 +22,7 @@ class Decoder(Decoder):
             self.__required_keys = opts['required-keys'].split(',')
         self.__sent_keys = None
         if 'send-keys' in opts:
-            self.__sent_keys = opts['send-keys'].split(',')
+            self.__sent_keys = [x.strip() for x in opts['send-keys'].split(',')]
         self.__keyvals = []
         if 'keyvals' in opts:
             for keyval in opts['keyvals'].split(','):

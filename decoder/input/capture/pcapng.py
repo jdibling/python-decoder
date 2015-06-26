@@ -1,8 +1,7 @@
 from base.decoder import Decoder
-from decoder.input.capture.pcapng import *
 from decoder.input.capture.pcapng.constants import *
-
-import sys
+from base.exceptions import *
+import gzip
 
 class Decoder(Decoder):
     def __init__(self, opts, next_decoder):
@@ -26,7 +25,8 @@ class Decoder(Decoder):
         return ret
 
     def __parse_options(self, opts):
-        self.__pcap = open(opts.get('filename', None), 'rb')
+        # open the file
+        self.__pcap = self.open_file(opts['filename'])
         self.destAddrWhite = None
         if 'dest-addrs-allow' in opts:
             self.destAddrWhite = (opts['dest-addrs-allow']).split(",;")

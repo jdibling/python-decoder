@@ -1,6 +1,6 @@
-from struct import calcsize, unpack, unpack_from
 from base.exceptions import *
 from base.verbosity import Verbosity
+import gzip
 
 class Decoder(object):
     """  Decoder base class
@@ -45,9 +45,8 @@ class Decoder(object):
                 raise LinkInitError(errorStr)
             else:
                 self.__verbosity = Verbosity.Names[opts['verbosity'].lower()]
-
-
         self.__show_payloads = opts.get ('show-payloads', False)
+        self.__compression_format = opts.get('compression', None)
 
     def __init__(self, kind, opts, next_decoder):
         self.__parse_basic_options(opts)
@@ -58,6 +57,18 @@ class Decoder(object):
         return self.__verbosity
     def verbose(self):
         return self.verbosity() == Verbosity.Verbose
+    def compression(self):
+        if self.__compression_format is None:
+            return None
+        return self.__compression_format.lower()
+
+    def open_file(self, fileName):
+        # open the file accounting for whatever compression
+        return {
+            None: open(fileName, 'rb'),
+            'gzip':  gzip.open(fileName, 'rb')
+        }[self.compression()]
+
 
     def show_payloads(self):
         return self.__show_payloads

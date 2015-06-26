@@ -1,10 +1,10 @@
 from struct import calcsize, unpack_from
 from base.decoder import  Verbosity
 from base.types import *
-
+from profilehooks import profile
 class BasicField(object):
     def __init__(self, **kwargs):
-        self.__renderer = kwargs.get('type', TrimmedString)
+        self.__renderer = kwargs.get('type', None)
         self.__decoder = kwargs.get('decode_function', self.eval)
         self.__verbosity = kwargs.get ('verbosity', Verbosity.Normal)
         if kwargs.get ('hidden', False) == True:
@@ -13,10 +13,12 @@ class BasicField(object):
 
     def eval(self, payload, contexts):
         pass
-    def renderer(self):
-        return self.__renderer
+
+    @profile
     def render(self, value):
-        return self.renderer()(value)
+        if self.__renderer is None:
+            return value
+        return self.__renderer(value)
     def decoder(self):
         return self.__decoder
     def shown(self):
@@ -33,38 +35,61 @@ class NamedField(BasicField):
     def name(self):
         return self.fieldName
 
+""" EchoField
+
+    This field simply creates a new field with the same value
+    of another field already in-context.
+
+    The value may be converted using a 'type=' argument
+
+    Construction:
+        EchoField(newField, oldField, [args])
+            The new field is named 'newField'.
+            The value for 'newField' is taken 'oldField'
+            from existing context.  Any type conversion specified
+            in [args] is applied to the new field.
+
+"""
+class EchoField(NamedField):
+    def __init__(self, fieldName, echoFieldName, **kwargs):
+        super(EchoField, self).__init__(fieldName, **kwargs)
+        self.echoFieldName = echoFieldName
+    def eval(self, payload, contexts, **kwargs):
+        fieldVal = self.render(contexts[-1][self.echoFieldName])
+        contexts[-1].update({self.name(): fieldVal})
+        return (payload, contexts)
+
 class WireField(NamedField):
+    @profile
     def __init__(self, field_name, wire_format, **kwargs):
         super(WireField, self).__init__(field_name, **kwargs)
-        self.__wire_format = wire_format
-        self.SetLittleEndian()
+        self.__base_format = wire_format
+        self.__format = None
         self.__wireBytes = None
+        self.SetLittleEndian()
 
+    @profile
     def SetLittleEndian(self):
-        self.__endian_format = '<'
+        self.__format = "<{0}".format(self.__base_format)
+        self.__wireBytes = calcsize(self.WireFormat())
+    @profile
     def SetBigEndian(self):
-        self.__endian_format = '>'
-    def GetEndian():
-        if self.__endian_format == '<':
-            return "Little"
-        elif self.__endian_format == '>':
-            return "Big"
-        else:
-            return "Void"
-
+        self.__format = ">{0}".format(self.__base_format)
+        self.__wireBytes = calcsize(self.WireFormat())
+    @profile
     def WireFormat(self):
-        return "{0}{1}".format(self.__endian_format, self.__wire_format)
-
+        return self.__format
+    @profile
     def WireBytes(self):
-        if self.__wireBytes is None:
-            self.__wireBytes = calcsize(self.WireFormat())
         return self.__wireBytes
 
+    @profile
     def eval(self, payload, contexts, **kwargs):
         payload, decodedField = self._extract(payload, **kwargs)
         payload, contexts = self._finalize(payload, decodedField, contexts, **kwargs)
         return (payload, contexts)
 
+    @profile
     def _finalize(self, payload, decoded_field, contexts, **kwargs):
         # update our context
         if self.shown():
@@ -72,6 +97,7 @@ class WireField(NamedField):
         # done
         return (payload, contexts)
 
+    @profile
     def _extract(self, payload, **kwargs):
         # extract the payload
         if not payload:
@@ -83,7 +109,7 @@ class WireField(NamedField):
         fieldData = dataFields[0]
         decodedField = self.render(fieldData)
         # trim the payload
-        payload = payload[self.WireBytes():]
+        payload = payload[self.__wireBytes:]
         # return
         return (payload, decodedField)
 

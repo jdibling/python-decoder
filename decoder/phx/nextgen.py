@@ -1,4 +1,4 @@
-from base.field import BasicField, WireField, ComputedField, RepeatingGroup, TrimmedString
+from base.field import *
 from base.descriptor import Descriptor
 
 from base.decoder import Decoder, Verbosity
@@ -103,7 +103,8 @@ class Decoder (Decoder):
 
         self.BusinessMessageHeaderDesc = Descriptor([
             WireField('pico-source-content', 'H', type=int),
-            WireField('pico-exchange-seq-num', 'Q', type=int)
+            WireField('pico-exchange-seq-num', 'Q', type=int),
+            EchoField('sequence-number', 'pico-exchange-seq-num')
         ])
 
         self.AppendageHeaderDesc = Descriptor([

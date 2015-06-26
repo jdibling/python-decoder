@@ -33,7 +33,7 @@ class Decoder (Decoder):
     """
 
     def __parse_options (self, opts):
-        self.pcap = open(opts.get('filename', None), 'rb')
+        self.pcap = self.open_file(opts['filename'])
         self.destAddrWhite = None
         if 'dest-addrs-allow' in opts:
             self.destAddrWhite = (opts['dest-addrs-allow']).split(",;")
@@ -42,7 +42,7 @@ class Decoder (Decoder):
             self.destAddrBlack = str(opts['dest-addrs-disallow']).split(",;")
         self.destPortWhite = None
         if 'dest-ports-allow' in opts:
-            self.destPortWhite = str(opts['dest-ports-allow']).split(",;")
+            self.destPortWhite = [int(x) for x in str(opts['dest-ports-allow']).split(",")]
         self.destPortBlack = None
         if 'dest-ports-disallow' in opts:
             self.destPortBlack = str(opts['dest-ports-disallow']).split(",;")
@@ -97,7 +97,7 @@ class Decoder (Decoder):
         ])
 
         self.NetDescriptor['VlanTag'] = Descriptor([
-            WireField('pcap-vlan-id', '2s', type=TrimmedString),
+            WireField('pcap-vlan-id', '2s', type=HexArray),
             WireField('pcap-eth-protocol', 'H', type=int) # this will overwrite the pcap-eth-protocol extracted in EtherNetHeader
         ])
 
@@ -182,7 +182,7 @@ class Decoder (Decoder):
 
         # see if the dest port is either whitelisted or blacklisted
         if self.destPortWhite is not None:
-            destPort = str(header['pcap-udp-dest-port'])
+            destPort = header['pcap-udp-dest-port']
             if destPort not in self.destPortWhite:
                 filtered_out = True
         if self.destPortBlack is not None:
