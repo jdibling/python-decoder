@@ -1,5 +1,6 @@
 from base.decoder import Decoder
 from decoder.ice.ice.segments import  *
+from decoder.ice.ice.constants import *
 
 class Decoder(Decoder):
     def __init__(self, opts, next_decoder):
@@ -29,10 +30,12 @@ class Decoder(Decoder):
 
         # process each message
         for msgIdx in range(0, msgBlock['ice-num-msgs']):
-            context = dict()
+            origPayload = payload
+            context = dict(inputContext)
             context.update(msgBlock)
 
-            # grab the message header (first two fields of every message)
+#            print "Payload ({0}): {1}".format(len(payload), self.toHex(payload))
+            # grab the message header (first two fields of every message')
             headers, payload = self.decode_segment(MessageHeader, payload)
             if len(headers) is not 1:
                 raise ValueError("Internal error decoding ICE message header")
@@ -41,19 +44,21 @@ class Decoder(Decoder):
             # extract the message payload
             msgBodyLen = context['ice-msg-body-length']
             msgPayload = payload[:msgBodyLen]
-            payload = payload[msgBodyLen]
 
             # parse the message body
             msgType = context['ice-msg-type']
             if msgType not in MsgTypeIndex:
                 self.__unhandledMessages[msgType] = self.__unhandledMessages.get(msgType, 0) + 1
             else:
-                msgs, msgPayload = self.decode_segment(MsgTypeIndex[msgType], msgPayload)
+#                print "Decoding MsgType{0}".format(MsgTypeIndex[msgType][0])
+                msgs, msgPayload = self.decode_segment(MsgTypeIndex[msgType][0], msgPayload)
                 if len(msgs) is not 1:
                     raise ValueError("Internal error decoding ICE message type {0}".format(msgType))
                 context.update(msgs[0])
 
-            print msgIdx
+            # trim the remaining unprocessed payload, send the decoded stuff to the next link & loo
+            payload = origPayload[3+msgBodyLen:]
+            self.dispatch_to_next(context, payload)
 
     def summarize(self):
         return {
