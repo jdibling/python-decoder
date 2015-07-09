@@ -96,9 +96,6 @@ class Decoder(object):
         else:
             return decodedContexts, payload
 
-
-
-
     def on_message(self, msg, payload):
         """  Packet processor
 
