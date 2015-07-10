@@ -26,7 +26,7 @@ class Decoder(Decoder):
         self.__byteCount += MessageBlock.WireBytes()
         self.__frameCount += 1
 
-        print msgBlock
+        #print msgBlock
 
         # process each message
         for msgIdx in range(0, msgBlock['ice-num-msgs']):
@@ -37,6 +37,7 @@ class Decoder(Decoder):
 #            print "Payload ({0}): {1}".format(len(payload), self.toHex(payload))
             # grab the message header (first two fields of every message')
             headers, payload = self.decode_segment(MessageHeader, payload)
+
             if len(headers) is not 1:
                 raise ValueError("Internal error decoding ICE message header")
             context.update(headers[0])
@@ -44,6 +45,9 @@ class Decoder(Decoder):
             # extract the message payload
             msgBodyLen = context['ice-msg-body-length']
             msgPayload = payload[:msgBodyLen]
+
+            if len(msgPayload) !=  msgBodyLen:
+                raise "Length does not match!"
 
             # parse the message body
             msgType = context['ice-msg-type']

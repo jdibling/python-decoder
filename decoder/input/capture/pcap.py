@@ -52,8 +52,8 @@ class Decoder (Decoder):
         if len(payload) != bytes:
             raise EOFError()
         self.__total_bytes += bytes
-        if self.__total_bytes == 1806500:
-            bk = True
+        #DELETE ME!!! if self.__total_bytes == 1806500:
+        #    bk = True
         return payload
         
 

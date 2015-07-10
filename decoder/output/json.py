@@ -1,9 +1,20 @@
 import os.path
 
 import base.decoder
+import datetime
+import base.types
 from base.decoder import Verbosity
 from base.exceptions import LinkInitError
-import json
+#import json
+import simplejson
+
+class CustomEncoder(simplejson.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, base.types.HexArray):
+            return obj.__str__()
+        if isinstance(obj, datetime.datetime):
+            return obj.strftime('%Y%m%d-%H:%M:%S.%f')
+        return simplejson.JSONEncoder.default(self, obj)
 
 class Decoder(base.decoder.Decoder):
     def __init__(self, opts, next_decoder):
@@ -35,6 +46,7 @@ class Decoder(base.decoder.Decoder):
         # See if we're squelching keys
         self.squelch_key = bool(opts.get('squelch-keys', False))
         self.show_remaining = bool(opts.get('show-remaining-payload', False))
+        self.separatebychannel = bool(opts.get('separate-by-channel', False))
 
         # Process any filters
         self.excludeAll = False
@@ -76,7 +88,8 @@ class Decoder(base.decoder.Decoder):
 #        else:
 #            keyList = context.keys()
         
-        print json.dumps(context)
+        line = simplejson.dumps(context, cls=CustomEncoder)
+        #print context
 #        for key in keyList:
 #            if key[0] == '$' or key[0] == '#':
 #                continue
@@ -95,13 +108,13 @@ class Decoder(base.decoder.Decoder):
 #                    values.append('{0}'.format(context[key]))
 #
 #        line = ','.join(values)
-#        if self.out_file is not None:
-#            self.out_file.write('{0}\n'.format(line))
-#            self.out_file.flush()
+        if self.out_file is not None:
+            self.out_file.write('{0}\n'.format(line))
+            self.out_file.flush()
 #            if self.verbosity() >= Verbosity.Verbose:
 #                print line
-#        else:
-#            print line
+        else:
+            print line
 
         self.dispatch_to_next(context, payload)
 

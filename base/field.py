@@ -1,7 +1,6 @@
 from struct import calcsize, unpack_from
 from base.decoder import  Verbosity
 from base.types import *
-
 class BasicField(object):
     def __init__(self, **kwargs):
         self.__renderer = kwargs.get('type', None)
