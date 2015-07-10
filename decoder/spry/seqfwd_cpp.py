@@ -1,9 +1,9 @@
-from base.field import BasicField, WireField, ComputedField, RepeatingGroup, TrimmedString
+from base.field import *
 from base.descriptor import Descriptor
 
 from base.decoder import Decoder, Verbosity
 
-from seqfwd_cpp.constants import *
+from decoder.spry.seqfwd_cpp.constants import *
 
 
 
@@ -28,21 +28,21 @@ class Decoder (Decoder):
 
         # init message segment descriptors
         self.__segmentDescriptors = {}
-        self.__segmentDescriptors['SeqFwd'] = Descriptor (self.verbosity(), [
-            WireField ('seq-num', 'I'),
-            WireField ('transaction-type', 'I'),
-            WireField ('recv-time', 'Q', type=long),
-            WireField ('send-time', 'Q', type=long),
-            WireField ('send-recv-diff', 'Q', type=long),
-            WireField ('unscaled-bid', 'I'),
-            WireField ('bid-scale', 'I'),
-            WireField ('bid-size', 'I'),
-            WireField ('unscaled-ask', 'I'),
-            WireField ('ask-scale', 'I'),
-            WireField ('ask-size', 'I'),
-            WireField ('symbol', '12s', type=TrimmedString),
-            WireField ('market', '4s', type=TrimmedString),
-            LookupField('transaction-type-name', 'transacton-type', TransactionTypes)
+        self.__segmentDescriptors['SeqFwd'] = Descriptor ([
+            WireField ('seqfwdcpp-seq-num', 'I'),
+            WireField ('seqfwdcpp-transaction-type', 'I'),
+            WireField ('seqfwdcpp-recv-time', 'Q', type=long),
+            WireField ('seqfwdcpp-send-time', 'Q', type=long),
+            WireField ('seqfwdcpp-send-recv-diff', 'Q', type=long),
+            WireField ('seqfwdcpp-unscaled-bid', 'I'),
+            WireField ('seqfwdcpp-bid-scale', 'I'),
+            WireField ('seqfwdcpp-bid-size', 'I'),
+            WireField ('seqfwdcpp-unscaled-ask', 'I'),
+            WireField ('seqfwdcpp-ask-scale', 'I'),
+            WireField ('seqfwdcpp-ask-size', 'I'),
+            WireField ('seqfwdcpp-symbol', '12s', type=TrimmedString),
+            WireField ('seqfwdcpp-market', '4s', type=TrimmedString),
+            MapLookupField('seqfwdcpp-transaction-type-name', 'seqfwdcpp-transaction-type', TransactionTypes)
         ])
 
 
