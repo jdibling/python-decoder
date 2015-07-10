@@ -3,6 +3,8 @@ from base.descriptor import Descriptor
 
 from base.decoder import Decoder, Verbosity
 
+from seqfwd_cpp.constants import *
+
 
 
 class Decoder (Decoder):
@@ -30,7 +32,7 @@ class Decoder (Decoder):
             WireField ('seq-num', 'I'),
             WireField ('transaction-type', 'I'),
             WireField ('recv-time', 'Q', type=long),
-            WireField ('recv-time', 'Q', type=long),
+            WireField ('send-time', 'Q', type=long),
             WireField ('send-recv-diff', 'Q', type=long),
             WireField ('unscaled-bid', 'I'),
             WireField ('bid-scale', 'I'),
@@ -39,7 +41,8 @@ class Decoder (Decoder):
             WireField ('ask-scale', 'I'),
             WireField ('ask-size', 'I'),
             WireField ('symbol', '12s', type=TrimmedString),
-            WireField ('market', '4s', type=TrimmedString)
+            WireField ('market', '4s', type=TrimmedString),
+            LookupField('transaction-type-name', 'transacton-type', TransactionTypes)
         ])
 
 
