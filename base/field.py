@@ -115,6 +115,19 @@ class LookupField(WireField):
         translated = self.__lookup_map[decoded]
         return self._finalize(payload, translated, contexts, **kwargs)
 
+class MapLookupField(NamedField):
+  def __init__(self, field_name, value_field, lookup_map, **kwargs):
+        super(MapLookupField, self).__init__(field_name, **kwargs)
+        self.__lookup_map = lookup_map
+        self.__value_field = value_field
+
+  def eval(self, payload, contexts, **kwargs):
+        decoded = contexts[-1][self.__value_field]
+        translated = self.__lookup_map[decoded]
+        contexts[-1].update({self.name(): translated})
+        return (payload, contexts)
+
+
 class ConstantField(NamedField):
     def __init__(self, field_name, value, **kwargs):
         super(ConstantField, self).__init__(field_name, **kwargs)

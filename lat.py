@@ -4,7 +4,7 @@ import sys
 import numpy
 import argparse
 from numpy import *
-
+import math
 from dateutil import tz
 
 # dependencies:  python-argparse 
@@ -40,16 +40,17 @@ with open(args.sourceFile) as f:
       continue;
 
     toks = line.split(",")
-    print len(toks)
     curr = float(toks[int(args.col)])
     if curr >= 0:
 	posLats.append(curr)
     else:
-	negLats.append(curr)
+	negLats.append(abs(curr))
     if args.verbose:
         print '{0}'.format(curr)
 
+print
 print "### POSITIVE VALUES ###"
+print
 if(len(posLats) > 1):
   npNums = numpy.array(posLats)
 
@@ -67,7 +68,6 @@ if(len(posLats) > 1):
   print "    min =", npNums.min()
   print "    max =", npNums.max()
   print "  count =", len(npNums)
-  print "dropped =", dropped
 
   if args.histogram == True: 
     import matplotlib.pyplot as plt
@@ -87,6 +87,41 @@ if(len(posLats) > 1):
     plt.ylabel('Count')
     plt.show()
 
-else:
-  print "Unable to locate any samples that match the request."
+print "\n### NEGATIVE VALUES ###\n"
+if(len(negLats) > 1):
+  npNums = numpy.array(negLats)
+
+  pctBins = []
+  for pct in [99, 99.9, 99.99, 99.999, 99.9999]:
+    pctBins.append((pct, numpy.percentile(npNums, pct)))
+
+  print "   mean =", npNums.mean()
+  print " median =", numpy.median(npNums)
+  for (pct, lat) in pctBins:
+    print '  {0}%:\t{1}'.format(pct, lat)
+
+  print " 50%     ", numpy.percentile(npNums, 50)
+  print " stdDev =", npNums.std()
+  print "    min =", npNums.min()
+  print "    max =", npNums.max()
+  print "  count =", len(npNums)
+
+  if args.histogram == True: 
+    import matplotlib.pyplot as plt
+    plt.hist(npNums, bins=int(args.bins))
+    plt.title(args.title);
+    plt.xticks(range(0,npNums.max(),50))
+    count = 0;
+    colors = ['g','r','c','m','y']
+
+    for (pct, lat) in pctBins:
+      ypos = len(npNums)-((len(npNums)/10)*count)
+      color = colors[count]
+      plt.annotate('{0}%\n{1} mics'.format(pct, int(lat)), xy=(lat,ypos), color=color)
+      plt.vlines(lat, 0, len(npNums), linestyles=u'dashed', color=color)
+      count += 1
+    plt.xlabel('Microseconds')
+    plt.ylabel('Count')
+    plt.show()
+
 

@@ -1,7 +1,9 @@
-from base.field import BasicField, WireField, ComputedField, RepeatingGroup, TrimmedString
+from base.field import *
 from base.descriptor import Descriptor
 
 from base.decoder import Decoder, Verbosity
+
+from decoder.spry.seqfwd_cpp.constants import *
 
 
 
