@@ -3,7 +3,7 @@ from __future__ import division
 import sys
 import numpy
 import argparse
-import matplotlib.pyplot as plt
+from numpy import *
 
 from dateutil import tz
 
@@ -23,16 +23,15 @@ first = True
 parser.add_argument('-v', dest='verbose', action='store_true', help="Verbose output")
 parser.add_argument('-x', dest='filter', help="filter latencies higher that this as bad samples", default=sys.maxint)
 parser.add_argument('-f', dest='sourceFile', help="source latency file", default="ticks.csv")
-parser.add_argument('-g', dest='histogram', action='store_true', help="show histogram")
+parser.add_argument('-g', dest='histogram', action='store_true', help="show histogram", default=False)
 parser.add_argument('-n', dest='bins', help="number of bins in histogram", default=10) 
 parser.add_argument('-t', dest='title', help="Histogram Title", default="Untitled")
-parser.add_argument('-c', dest='col', help="Column number to extract", default=5)
+parser.add_argument('-c', dest='col', help="Column number to extract", default=None)
 # parser.add_argument('-s', dest='skipFirst', help='Skip first row in result set', default=False)
 args = parser.parse_args()
 
-dropped = 0
-
-numList = []
+posLats = []
+negLats = []
 
 with open(args.sourceFile) as f:
   for line in nonblank_lines(f):
@@ -41,18 +40,18 @@ with open(args.sourceFile) as f:
       continue;
 
     toks = line.split(",")
+    print len(toks)
     curr = float(toks[int(args.col)])
-    if curr > long(args.filter):
-      dropped += 1
-      continue
+    if curr >= 0:
+	posLats.append(curr)
+    else:
+	negLats.append(curr)
+    if args.verbose:
+        print '{0}'.format(curr)
 
-    if curr > 0:
-      numList.append(curr*1000000)
-      if args.verbose:
-        print '{0} microseconds'.format(curr)
-
-if(len(numList) > 1):
-  npNums = numpy.array(numList)
+print "### POSITIVE VALUES ###"
+if(len(posLats) > 1):
+  npNums = numpy.array(posLats)
 
   pctBins = []
   for pct in [99, 99.9, 99.99, 99.999, 99.9999]:
@@ -70,7 +69,8 @@ if(len(numList) > 1):
   print "  count =", len(npNums)
   print "dropped =", dropped
 
-  if args.histogram: 
+  if args.histogram == True: 
+    import matplotlib.pyplot as plt
     plt.hist(npNums, bins=int(args.bins))
     plt.title(args.title);
     plt.xticks(range(0,npNums.max(),50))

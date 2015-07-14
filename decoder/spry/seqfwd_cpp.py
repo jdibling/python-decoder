@@ -26,20 +26,20 @@ class Decoder (Decoder):
 
         # init message segment descriptors
         self.__segmentDescriptors = {}
-        self.__segmentDescriptors['SeqFwd'] = Descriptor (self.verbosity(), [
-            WireField ('seq-num', 'I'),
-            WireField ('transaction-type', 'I'),
-            WireField ('recv-time', 'Q', type=long),
-            WireField ('recv-time', 'Q', type=long),
-            WireField ('send-recv-diff', 'Q', type=long),
-            WireField ('unscaled-bid', 'I'),
-            WireField ('bid-scale', 'I'),
-            WireField ('bid-size', 'I'),
-            WireField ('unscaled-ask', 'I'),
-            WireField ('ask-scale', 'I'),
-            WireField ('ask-size', 'I'),
-            WireField ('symbol', '12s', type=TrimmedString),
-            WireField ('market', '4s', type=TrimmedString)
+        self.__segmentDescriptors['SeqFwd'] = Descriptor ( [
+            WireField ('seqfwd-seq-num', 'I'),
+            WireField ('seqfwd-transaction-type', 'I'),
+            WireField ('seqfwd-recv-time', 'Q', type=long),
+            WireField ('seqfwd-send-time', 'Q', type=long),
+            WireField ('seqfwd-send-recv-diff', 'Q', type=long),
+            WireField ('seqfwd-unscaled-bid', 'I'),
+            WireField ('seqfwd-bid-scale', 'I'),
+            WireField ('seqfwd-bid-size', 'I'),
+            WireField ('seqfwd-unscaled-ask', 'I'),
+            WireField ('seqfwd-ask-scale', 'I'),
+            WireField ('seqfwd-ask-size', 'I'),
+            WireField ('seqfwd-symbol', '12s', type=TrimmedString),
+            WireField ('seqfwd-market', '4s', type=TrimmedString)
         ])
 
 
