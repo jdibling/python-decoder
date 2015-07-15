@@ -3,7 +3,7 @@ from base.descriptor import Descriptor
 
 from base.decoder import Decoder, Verbosity
 
-from decoder.spry.seqfwd_cpp.constants import *
+from decoder.spry.seqfwd_cppmsg.constants import *
 
 
 

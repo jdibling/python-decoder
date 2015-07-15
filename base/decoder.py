@@ -100,7 +100,7 @@ class Decoder(object):
         """  Packet processor
 
           Packets are decoded by a "decoder chain."  Each link in the chain
-          handles a different type of data.  For example, wheen doing
+          handles a different type of data.  For example, when doing
           gap-checking on an ArcaXDBBBO pcapng file, there are three links
           in the chain:
 
@@ -132,6 +132,10 @@ class Decoder(object):
             self.run()
         except InterruptException:
             return
+
+    def stop(self):
+        if self.next is not None:
+            self.next.stop()
 
     def dispatch_to_next(self, context, payload):
         if self.next is not None:

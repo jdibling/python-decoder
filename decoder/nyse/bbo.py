@@ -1,5 +1,5 @@
 from base.decoder import Decoder
-from decoder.nyse.bbo.segments import *
+from decoder.nyse.bbomsg.segments import *
 
 class Decoder(Decoder):
     def __init__(self, opts, next_decoder):

@@ -6,8 +6,8 @@ from base.decoder import Decoder, Verbosity
 from decoder.cta.constants import  InstrumentType, CancelErrorAction
 from decoder.cta.types import TimeStamp, DecDiv, PriceDenominator
 from decoder.cta.fields import FreeFormTextField
-from decoder.cta.cqs.constants import *
-from decoder.cta.cqs.segments import *
+from decoder.cta.cqsmsg.constants import *
+from decoder.cta.cqsmsg.segments import *
 
 class Decoder(Decoder):
     """ cqs Decoder

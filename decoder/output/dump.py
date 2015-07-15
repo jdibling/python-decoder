@@ -7,12 +7,12 @@ from base.exceptions import LinkInitError
 class Decoder(base.decoder.Decoder):
     def __init__(self, opts, next_decoder):
         super(Decoder, self).__init__('dump', opts, next_decoder)
+        self.out_file = None
         self.__parse_options(opts)
         self.msg_type_counts = {}
             
     def __parse_options(self, opts):
         # Get the output file
-        self.out_file = None
         out_filename = opts.get('filename', None)
         if out_filename is not None:
             out_filename = os.path.abspath(out_filename)
@@ -60,7 +60,6 @@ class Decoder(base.decoder.Decoder):
 
         self.sortByKey = bool(opts.get('sort-by-key', False))
 
-
     def on_message(self, context, payload):
         """ Dump all processed packets in human-readable fomat
         """
@@ -86,8 +85,8 @@ class Decoder(base.decoder.Decoder):
             if key in self.inclusions:
                 excluded = False
 
-            if excluded == False:
-                if self.squelch_key == False:
+            if not excluded:
+                if not self.squelch_key:
                     values.append('{0}={1}'.format(key, context[key]))
                 else:
                     values.append('{0}'.format(context[key]))
@@ -103,12 +102,14 @@ class Decoder(base.decoder.Decoder):
 
         self.dispatch_to_next(context, payload)
 
+    def stop(self):
+        # send the stop up the chain first
+        super(Decoder, self).stop()
+        self.out_file.flush()
+        self.out_file.close()
+        self.out_file = None
+
     def summarize(self):
         return dict()
 
-
-
-
-
-            
 

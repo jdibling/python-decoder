@@ -7,6 +7,7 @@ import sys
 import traceback
 import signal
 import collections
+import importlib
 from base.exceptions import *
 from decoder._version import __version__
 
@@ -57,6 +58,7 @@ class Main(object):
                 print 'Run Summary:'
                 for stat in summary.keys():
                     print '\t{0}: {1}'.format(stat, summary[stat])
+            self.decoders[0].stop()
         except LinkInitError as ex:
             sys.stderr.write("***ERROR***\n")
             sys.stderr.write('An error occured while initializing a decoder module.\n')
@@ -114,9 +116,9 @@ class Main(object):
                 print "Initialized Decoder: ",\
                     dec_type, "Options: ", options
             
-            libfile = './decoder/' \
-                + dec_type.replace('.', '/').replace('-', '_') + '.py'
-            lib = imp.load_source(dec_type, libfile)
+            package = ".".join(['decoder'] + dec_type.split("/"))
+            lib = importlib.import_module(package)
+
             dec = lib.Decoder(options, None)
             if self.decoders:
                 self.decoders[-1].next = dec

@@ -1,7 +1,7 @@
 from base.descriptor import *
 from decoder.arca.xdp.segments import XdpSegment
-from decoder.arca.bbo.constants import BboMsgTypeId
-from decoder.arca.bbo.maps import BboSymbolMap
+from decoder.arca.bbomsg.constants import BboMsgTypeId
+from decoder.arca.bbomsg.maps import BboSymbolMap
 
 BboSegment = XdpSegment
 BboSegment.update({

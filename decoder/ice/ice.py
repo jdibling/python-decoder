@@ -1,6 +1,6 @@
 from base.decoder import Decoder
-from decoder.ice.ice.segments import  *
-from decoder.ice.ice.constants import *
+from decoder.ice.icemsg.segments import *
+from decoder.ice.icemsg.constants import *
 
 class Decoder(Decoder):
     def __init__(self, opts, next_decoder):
@@ -29,7 +29,7 @@ class Decoder(Decoder):
         #print msgBlock
 
         # process each message
-        for msgIdx in range(0, msgBlock['ice-num-msgs']):
+        for msgIdx in xrange(0, msgBlock['ice-num-msgs']):
             origPayload = payload
             context = dict(inputContext)
             context.update(msgBlock)
@@ -46,8 +46,8 @@ class Decoder(Decoder):
             msgBodyLen = context['ice-msg-body-length']
             msgPayload = payload[:msgBodyLen]
 
-            if len(msgPayload) !=  msgBodyLen:
-                raise "Length does not match!"
+            #if len(msgPayload) !=  msgBodyLen:
+            #    raise "Length does not match!"
 
             # parse the message body
             msgType = context['ice-msg-type']

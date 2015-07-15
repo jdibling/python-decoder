@@ -1,4 +1,4 @@
-from decoder.ice.ice.segments import *
+from decoder.ice.icemsg.segments import *
 
 MsgTypeIndex = {
     'C': (MarketSnapshot,                     'MarketSnapshot'),

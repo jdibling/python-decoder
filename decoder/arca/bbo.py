@@ -2,9 +2,9 @@ import datetime
 
 from base.decoder import Decoder
 
-from decoder.arca.bbo.constants import BboMsgTypeId, BboMsgType
-from decoder.arca.bbo.segments import BboSegment
-from decoder.arca.bbo.maps import BboSymbolMap
+from decoder.arca.bbomsg.constants import BboMsgTypeId, BboMsgType
+from decoder.arca.bbomsg.segments import BboSegment
+from decoder.arca.bbomsg.maps import BboSymbolMap
 
 class Decoder(Decoder):
 

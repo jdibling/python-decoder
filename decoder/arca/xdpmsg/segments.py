@@ -2,8 +2,8 @@ from base.field import BasicField, WireField, ComputedField, RepeatingGroup, Loo
 from base.descriptor import Descriptor
 from base.decoder import Decoder, Verbosity
 
-from decoder.arca.xdp.constants import XdpMsgTypeId, DeliveryFlag, MarketId
-from decoder.arca.xdp.convert import XdpTimeStamp
+from decoder.arca.xdpmsg.constants import XdpMsgTypeId, DeliveryFlag, MarketId
+from decoder.arca.xdpmsg.convert import XdpTimeStamp
 
 XdpSegment = {
     XdpMsgTypeId['XdpPacketHeader']: Descriptor([

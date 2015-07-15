@@ -3,7 +3,7 @@ from base.descriptor import Descriptor
 
 from base.decoder import Decoder, Verbosity
 
-from decoder.phx.nextgen.field import *
+from decoder.phx.nextgenmsg.field import *
 
 import sys
 

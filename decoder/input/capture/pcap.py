@@ -1,4 +1,4 @@
-from base.field import BasicField, WireField, ComputedField, RepeatingGroup, TrimmedString, HexArray
+from base.field import BasicField, WireField, ComputedField, RepeatingGroup, TrimmedString, HexArray, NamedField
 from base.descriptor import Descriptor
 
 from base.decoder import Decoder, Verbosity
@@ -24,6 +24,8 @@ class IpAddrField(WireField):
         return "IpAddrField ({0}): {1}".format(self.__orig_data, self.__rendered)
     def __render(self):
         self.__rendered = socket.inet_ntoa(pack('!L', self.__orig_data))
+    def as_int(self):
+        return self.__orig_data
 
 class Decoder (Decoder):
     """ pcap decoder
@@ -112,14 +114,14 @@ class Decoder (Decoder):
             WireField('pcap-ip-protocol', 'B', type=int),
             WireField('pcap-ip-header-checksum', 'H', type=int),
             WireField('pcap-ip-source-addr', 'L', type=IpAddrField()),
-            WireField('pcap-ip-dest-addr', 'L', type=IpAddrField())
+            WireField('pcap-ip-dest-addr', 'L', type=IpAddrField()),
         ])
 
         self.NetDescriptor['UdpHeader'] = Descriptor([
             WireField('pcap-udp-source-port', 'H', type=int),
             WireField('pcap-udp-dest-port', 'H', type=int),
             WireField('pcap-udp-length', 'H', type=int),
-            WireField('pcap-udp-checksum', 'H', type=int)
+            WireField('pcap-udp-checksum', 'H', type=int),
         ])
 
     def on_message (self, context, payload):
@@ -174,6 +176,12 @@ class Decoder (Decoder):
             udpHeaders, payload = self.decode_segment(self.NetDescriptor['UdpHeader'], payload)
             if len(udpHeaders) is not 1:
                 raise ValueError("Internal Error (4)")
+            pcap_ip_destination_address_index = 10
+            stream_id = self.NetDescriptor['IpHeader'].fields()[pcap_ip_destination_address_index].\
+                _BasicField__renderer._IpAddrField__orig_data
+            stream_id <<= 16;
+            stream_id = stream_id | udpHeaders[0]['pcap-udp-dest-port']
+            udpHeaders[0]['pcap-udp-stream-id'] = stream_id#NamedField('pcap-udp-stream-id', type=int)
             header.update(udpHeaders[0])
         else:
             if self.verbose():
@@ -290,7 +298,7 @@ class Decoder (Decoder):
                 dt = datetime.datetime.fromtimestamp(secs)
                 dt.replace(microsecond=(nanos/1000))
                 packetHeader['pcap-recv-timestamp'] = dt
-                packetHeader['pcap-recv-time-sec'] = '{0}.{1}'.format(secs, nanos)
+                packetHeader['pcap-recv-time-sec'] = '{0}.{1:09d}'.format(secs, nanos)
 
                  # read the packet payload frrom the file & send to next link in chain
                 packetPayload = self.read(packetBytes)

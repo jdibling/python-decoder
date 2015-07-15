@@ -1,4 +1,4 @@
-from decoder.arca.xdp.constants import XdpMsgTypeId, XdpMsgType
+from decoder.arca.xdpmsg.constants import XdpMsgTypeId, XdpMsgType
 
 BboMsgType = XdpMsgType
 BboMsgType.update({
