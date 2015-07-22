@@ -20,6 +20,16 @@ class CustomEncoder(json.JSONEncoder):
             return obj.strftime('%Y%m%d-%H:%M:%S.%f')
         return json.JSONEncoder.default(self, obj)
 
+def mark_file_done(file_name):
+    if file_name.endswith('.tmp'):
+        os.rename(file_name, file_name.rstrip('.tmp'))
+
+def finalize_file(file):
+    file.flush();
+    name = file.name
+    file.close()
+    mark_file_done(name)
+
 class Decoder(base.decoder.Decoder):
     def __init__(self, opts, next_decoder):
         super(Decoder, self).__init__('json', opts, next_decoder)
@@ -30,11 +40,9 @@ class Decoder(base.decoder.Decoder):
     def __finalize_files(self):
         if self.compressed:
             for f in self.out_files:
-                self.out_files[f].flush()
-                self.out_files[f].close()
+                finalize_file(self.out_files[f])
         else:
-            self.out_file.flush()
-            self.out_file.close()
+            finalize_file(self.out_file)
 
     def __parse_options(self, opts):
         # Get the output file
@@ -103,9 +111,10 @@ class Decoder(base.decoder.Decoder):
         if not os.path.exists(os.path.dirname(out_filename)):
             os.makedirs(os.path.dirname(out_filename))
         if self.compressed:
-            out_filename += ".gz"
+            out_filename += ".gz.tmp"
             self.out_file = gzip.open(out_filename, 'w')
         else:
+            out_filename += ".tmp"
             self.out_file = open(out_filename, 'w')
         return self.out_file
 
