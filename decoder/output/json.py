@@ -25,7 +25,7 @@ def mark_file_done(file_name):
         os.rename(file_name, file_name.rstrip('.tmp'))
 
 def finalize_file(file):
-    file.flush();
+    file.flush()
     name = file.name
     file.close()
     mark_file_done(name)
@@ -38,7 +38,7 @@ class Decoder(base.decoder.Decoder):
         self.out_file = None
 
     def __finalize_files(self):
-        if self.compressed:
+        if self.separate_by_channel:
             for f in self.out_files:
                 finalize_file(self.out_files[f])
         else:
