@@ -88,6 +88,7 @@ class Main(object):
                 lines.append('An error occurred while processing.  Program will terminate.\n')
                 lines.append('To enable full fidelity of errors, set the "debug" global option to True in your config file.\n')
                 sys.stderr.writelines(lines)
+                raise ex
 
     def parse_options(self):
         # Find & Load the config
