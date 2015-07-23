@@ -388,16 +388,15 @@ OldStyleOptionsTradeAndMarketStats = Descriptor([
 # TCP Messages
 # # Login
 LoginRequest = Descriptor([
-    WireField('ice-request-seq-id',          'i'),
+    WireField('ice-request-seq-id',          'i',   type=int),
     WireField('ice-user-name',               '30s', type=TrimmedString),
     WireField('ice-password',                '30s', type=TrimmedString),
     WireField('ice-get-strip-info-messages', 'c'),
-    WireField('ice-request-seq-id',          'i'),
     WireField('resv1',                       'h',   hidden=True),
 ], endian='Big')
 
 LoginResponse = Descriptor([
-    WireField('ice-request-seq-id',            'i'),
+    WireField('ice-request-seq-id',            'i',    type=int),
     WireField('ice-code',                      'c'),
     WireField('ice-text',                      '120s', type=TrimmedString),
     WireField('ice-market-types-permissioned', '300s', type=TrimmedString)
@@ -478,6 +477,19 @@ StripInfo = Descriptor([
     WireField('ice-end-month',   'h'),
     WireField('ice-end-day',     'h'),
     WireField('ice-strip-name',  '50s', type=TrimmedString)
+], endian='Big')
+
+#this one is a bit strange.  defined for tcp as well
+StripInfo = Descriptor([
+    WireField('ice-strip-id', 'h'),
+    WireField('ice-strip-type', '20s', type=TrimmedString),
+    WireField('ice-begin-year', 'h'),
+    WireField('ice-begin-month', 'h'),
+    WireField('ice-begin-day', 'h'),
+    WireField('ice-end-year', 'h'),
+    WireField('ice-end-month', 'h'),
+    WireField('ice-end-day', 'h'),
+    WireField('ice-strip-name', '50s', type=TrimmedString),
 ], endian='Big')
 
 ProductDefResponseOptions = Descriptor([
@@ -618,7 +630,6 @@ LoginRequest = Descriptor([
     WireField('ice-user-name',               '30s', type=TrimmedString),
     WireField('ice-password',                '30s', type=TrimmedString),
     WireField('ice-get-strip-info-messages', 'c'),
-    WireField('ice-request-seq-id',          'i'),
     WireField('resv1',                       'h',   hidden=True),
 ], endian='Big')
 
@@ -751,20 +762,22 @@ StrategyDefResponseOptions = Descriptor([
     WireField('ice-increment-price',            'i'),
     WireField('ice-increment-qty',              'i'),
     WireField('ice-min-qty',                    'i'),
-    WireField('ice-number-of-leg-definition',   'b'),  # repeating group...
-    WireField('ice-leg-body-length',            'b'),
-    WireField('ice-leg-market-id',              'i'),
-    WireField('ice-leg-underlying-market-id',   'i'),
-    WireField('ice-leg-ratio',                  'h'),
-    WireField('ice-leg-side',                   'i'),
-    WireField('ice-number-of-hedge-definition', 'b'),  # repeating group...
-    WireField('ice-hedge-body-length',          'b'),
-    WireField('ice-hedge-market-id',            'i'),
-    WireField('ice-hedge-security-type',        'c'),
-    WireField('ice-hedge-side',                 'c'),
-    WireField('ice-hedge-price',                'q'),
-    WireField('ice-hedge-price-denominator',    'c'),
-    WireField('ice-hedge-delta',                'i'),
+    RepeatingGroup([
+        WireField('ice-leg-body-length',          'b'),
+        WireField('ice-leg-market-id',            'i'),
+        WireField('ice-leg-underlying-market-id', 'i'),
+        WireField('ice-leg-ratio',                'h'),
+        WireField('ice-leg-side',                 'c'),
+    ], RepeatingGroup.ReprCountFromPayload('b'), embed_as='ice-leg-definition'),
+    RepeatingGroup([
+        WireField('ice-hedge-body-length',       'b'),
+        WireField('ice-hedge-market-id',         'i'),
+        WireField('ice-hedge-security-type',     'c'),
+        WireField('ice-hedge-side',              'c'),
+        WireField('ice-hedge-price',             'q'),
+        WireField('ice-hedge-price-denominator', 'c'),
+        WireField('ice-hedge-delta',             'h'),
+    ], RepeatingGroup.ReprCountFromPayload('b'), embed_as='ice-hedge-definition'),
 ], endian='Big')
 
 StrategyDefResponseFutures = Descriptor([
@@ -778,11 +791,12 @@ StrategyDefResponseFutures = Descriptor([
     WireField('ice-increment-price',          'i'),
     WireField('ice-increment-qty',            'i'),
     WireField('ice-min-qty',                  'i'),
-    WireField('ice-number-of-leg-definition', 'b'),  # repeating group...
-    WireField('ice-leg-body-length',          'b'),
-    WireField('ice-leg-market-id',            'i'),
-    WireField('ice-leg-ratio',                'h'),
-    WireField('ice-leg-side',                 'i'),
+    RepeatingGroup([
+        WireField('ice-leg-body-length',      'b'),
+        WireField('ice-leg-market-id',        'i'),
+        WireField('ice-leg-ratio',            'h'),
+        WireField('ice-leg-side',             'c'),
+    ], RepeatingGroup.ReprCountFromPayload('b'), embed_as='ice-leg-definition'),
 ], endian='Big')
 
 # # Historical Replay

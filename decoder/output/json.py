@@ -77,6 +77,7 @@ class Decoder(base.decoder.Decoder):
         # See if we're squelching keys
         self.squelch_key = bool(opts.get('squelch-keys', False))
         self.show_remaining = bool(opts.get('show-remaining-payload', False))
+        self.suffix = opts.get('suffix', '')
 
         # Process any filters
         self.excludeAll = False
@@ -106,7 +107,7 @@ class Decoder(base.decoder.Decoder):
     def open_channel_file(self, channel):
         ip = stream_id_converter.bytesToAddr(channel)
         ip = ip.replace(":", "-")
-        file = self.date + "-" + self.time + ".json"
+        file = self.date + "-" + self.time + self.suffix + ".json"
         out_filename = os.path.join(self.root, "json", self.venue, self.date, ip, file)
         if not os.path.exists(os.path.dirname(out_filename)):
             os.makedirs(os.path.dirname(out_filename))
