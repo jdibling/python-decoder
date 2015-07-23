@@ -63,7 +63,7 @@ class Main(object):
             sys.stderr.write("***ERROR***\n")
             sys.stderr.write('An error occured while initializing a decoder module.\n')
             sys.stderr.write('Error: "{0}"\n'.format(str(ex)))
-            sys.stderr.write('Program will terminate.  Correct above errors and try again.\n')
+            sys.stderr.write('Program will terminate.  Correct above errors and try again.\n ')
 
         except Exception as ex:
             if self.enable_debugging:
