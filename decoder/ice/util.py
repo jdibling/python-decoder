@@ -3,6 +3,14 @@ __author__ = 'blazei'
 from decoder.ice.icemsg import segments as ice_segments
 import struct
 
+__request_seq_id = 0
+
+
+def inc_request_seq_id():
+    global __request_seq_id
+    __request_seq_id += 1
+    return __request_seq_id
+
 
 def is_ice_heartbeat(payload):
     """

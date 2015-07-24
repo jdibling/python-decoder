@@ -12,7 +12,6 @@ MessageHeader = Descriptor([
     WireField('ice-msg-body-length', 'h')
 ], endian='Big')
 
-# TODO Repeating Groups in here?
 MarketSnapshot = Descriptor([
     WireField('market-id',                                 'i'),
     WireField('market-type',                               'h'),
@@ -163,19 +162,6 @@ PreOpenPriceIndicator = Descriptor([
     WireField('ice-market-id', 'i'),
     WireField('ice-pre-open-price', 'q'),
     WireField('ice-date-time', 'q'),
-], endian='Big') 
-
-#this one is a bit strange.  defined for tcp as well
-StripInfo = Descriptor([
-    WireField('ice-strip-id', 'h'),
-    WireField('ice-strip-type', '20s', type=TrimmedString),
-    WireField('ice-begin-year', 'h'),
-    WireField('ice-begin-month', 'h'),
-    WireField('ice-begin-day', 'h'),
-    WireField('ice-end-year', 'h'),
-    WireField('ice-end-month', 'h'),
-    WireField('ice-end-day', 'h'),
-    WireField('ice-strip-name', '50s', type=TrimmedString),
 ], endian='Big')
 
 IntervalPriceLimitNotification = Descriptor([
@@ -283,7 +269,7 @@ DeletePriceLevel = Descriptor([
     WireField('ice-side', 'c'),
     WireField('ice-price-level-position', 'b'),
 ], endian='Big') 
-#TODO repeating Groups
+
 NewOptionsStrategyDefinition = Descriptor([
     WireField('ice-market-id', 'i'),
     WireField('ice-underlying-market-id', 'i'),
@@ -293,7 +279,6 @@ NewOptionsStrategyDefinition = Descriptor([
     WireField('ice-increment-price', 'i'),
     WireField('ice-increment-qty', 'i'),
     WireField('ice-min-qty', 'i'),
-    #WireField('ice-number-of-leg-definition', 'b'),
     RepeatingGroup([
         WireField('ice-leg-body-length', 'b'),
         WireField('ice-leg-market-id', 'i'),
@@ -301,7 +286,6 @@ NewOptionsStrategyDefinition = Descriptor([
         WireField('ice-leg-ratio', 'h'),
         WireField('ice-leg-side', 'c'),
     ], RepeatingGroup.ReprCountFromPayload('b'), embed_as='ice-leg-definition'),
-    #WireField('ice-number-of-hedge-definition', 'b'),
     RepeatingGroup([
         WireField('ice-hedge-body-length', 'b'),
         WireField('ice-hedge-market-id', 'i'),
@@ -385,6 +369,7 @@ OldStyleOptionsTradeAndMarketStats = Descriptor([
     WireField('ice-low', 'q'),
     WireField('ice-vwap', 'q'),
 ], endian='Big')
+
 # TCP Messages
 # # Login
 LoginRequest = Descriptor([
@@ -397,244 +382,6 @@ LoginRequest = Descriptor([
 
 LoginResponse = Descriptor([
     WireField('ice-request-seq-id',            'i',    type=int),
-    WireField('ice-code',                      'c'),
-    WireField('ice-text',                      '120s', type=TrimmedString),
-    WireField('ice-market-types-permissioned', '300s', type=TrimmedString)
-], endian='Big')
-
-# # Product Definitions
-ProductDefRequest = Descriptor([
-    WireField('ice-request-seq-id', 'i'),
-    WireField('ice-market-type',    'h'),
-    WireField('ice-security-type',  'c')
-], endian='Big')
-
-ProductDefResponseFutures = Descriptor([
-    WireField('ice-request-seq-id',              'i'),
-    WireField('ice-request-market-type',         'h'),
-    WireField('ice-num-of-markets',              'h'),
-    WireField('ice-market-id',                   'i'),
-    WireField('ice-contract-symbol',             '35s', type=TrimmedString),
-    WireField('ice-trading-status',              'c'),
-    WireField('ice-order-price-denominator',     'c'),
-    WireField('ice-increment-price',             'i'),
-    WireField('ice-increment-qty',               'i'),
-    WireField('ice-lot-size',                    'i'),
-    WireField('ice-market-desc',                 '120s', type=TrimmedString),
-    WireField('ice-maturity-year',               'h'),
-    WireField('ice-maturity-month',              'h'),
-    WireField('ice-maturity-day',                'h'),
-    WireField('ice-is-spread',                   'c'),
-    WireField('ice-is-crack-spread',             'c'),
-    WireField('ice-primary-market-id',           'i'),
-    WireField('ice-secondary-market-id',         'i'),
-    WireField('ice-is-options',                  'c'),
-    WireField('ice-option-type',                 'c'),
-    WireField('ice-strike-price',                'q'),
-    WireField('ice-second-strike',               'q'),
-    WireField('ice-deal-price-denominator',      'c'),
-    WireField('ice-min-qty',                     'i'),
-    WireField('ice-unit-qty',                    'i'),
-    WireField('ice-currency',                    '20s', type=TrimmedString),
-    WireField('ice-min-strike-price',            'q'),
-    WireField('ice-max-strike-price',            'q'),
-    WireField('ice-increment-strike-price',      'i'),
-    WireField('ice-num-decimals-strike-price',   'c'),
-    WireField('ice-min-options-price',           'q'),
-    WireField('ice-max-options-price',           'q'),
-    WireField('ice-increment-options-price',     'i'),
-    WireField('ice-num-decimals-options-price',  'c'),
-    WireField('ice-tick-value',                  'q'),
-    WireField('ice-allow-options',               'c'),
-    WireField('ice-cleared-alias',               '15s', type=TrimmedString),
-    WireField('ice-allows-implied',              'c'),
-    WireField('ice-options-expiration-year',     'h'),
-    WireField('ice-options-expiration-month',    'h'),
-    WireField('ice-options-expiration-day',      'h'),
-    WireField('ice-min-price',                   'q'),
-    WireField('ice-max-price',                   'q'),
-    WireField('ice-product-id',                  'h'),
-    WireField('ice-product-name',                '62s', type=TrimmedString),
-    WireField('ice-hub-id',                      'h'),
-    WireField('ice-hub-alias',                   '80s', type=TrimmedString),
-    WireField('ice-strip-id',                    'h'),
-    WireField('ice-strip-alias',                 '39s', type=TrimmedString),
-    WireField('resv1',                           'c'),
-    WireField('ice-is-serial-options-supported', 'c'),
-    WireField('ice-is-tradable',                 'c'),
-    WireField('ice-settle-price-denominator',    'c'),
-    WireField('ice-mic-code',                    '4s', type=TrimmedString),
-    WireField('ice-unit-qty-denominator',        'c')
-], endian='Big')
-
-StripInfo = Descriptor([
-    WireField('ice-strip-id',    'h'),
-    WireField('ice-strip-type',  '20s', type=TrimmedString),
-    WireField('ice-begin-year',  'h'),
-    WireField('ice-begin-month', 'h'),
-    WireField('ice-begin-day',   'h'),
-    WireField('ice-end-year',    'h'),
-    WireField('ice-end-month',   'h'),
-    WireField('ice-end-day',     'h'),
-    WireField('ice-strip-name',  '50s', type=TrimmedString)
-], endian='Big')
-
-#this one is a bit strange.  defined for tcp as well
-StripInfo = Descriptor([
-    WireField('ice-strip-id', 'h'),
-    WireField('ice-strip-type', '20s', type=TrimmedString),
-    WireField('ice-begin-year', 'h'),
-    WireField('ice-begin-month', 'h'),
-    WireField('ice-begin-day', 'h'),
-    WireField('ice-end-year', 'h'),
-    WireField('ice-end-month', 'h'),
-    WireField('ice-end-day', 'h'),
-    WireField('ice-strip-name', '50s', type=TrimmedString),
-], endian='Big')
-
-ProductDefResponseOptions = Descriptor([
-    WireField('ice-request-seq-id',              'i'),
-    WireField('ice-request-market-type',         'h'),
-    WireField('ice-num-of-markets-obsolete',     'h'),
-    WireField('ice-market-id',                   'i'),
-    WireField('ice-underlying-market-id',        'i'),
-    WireField('ice-contract-symbol',             '35s', type=TrimmedString),
-    WireField('ice-trading-status',              'c'),
-    WireField('ice-order-price-denominator',     'c'),
-    WireField('ice-increment-qty',               'i'),
-    WireField('ice-lot-size',                    'i'),
-    WireField('ice-market-desc',                 '120s', type=TrimmedString),
-    WireField('ice-option-type',                 'c'),
-    WireField('ice-strike-price',                'q'),
-    WireField('ice-deal-price-denominator',      'c'),
-    WireField('ice-min-qty',                     'i'),
-    WireField('ice-currency',                    '20s', type=TrimmedString),
-    WireField('ice-num-decimals-strike-price',   'c'),
-    WireField('ice-min-options-price',           'q'),
-    WireField('ice-max-options-price',           'q'),
-    WireField('ice-increment-premium-price',     'i'),
-    WireField('ice-options-expiration-year',     'h'),
-    WireField('ice-options-expiration-month',    'h'),
-    WireField('ice-options-expiration-day',      'h'),
-    WireField('ice-options-settlment-type',      'c'),
-    WireField('ice-options-expiration-type',     'c'),
-    WireField('ice-num-of-markets',              'i'),
-    WireField('ice-serial-underlying-market-id', 'i'),
-    WireField('ice-contract-symbol-extra',       '35s', type=TrimmedString),
-    WireField('ice-settle-price-denominator',    'c'),
-    WireField('ice-unit-qty-denominator',        'c'),
-], endian='Big')
-
-StrategyDefResponseOptions = Descriptor([
-    WireField('ice-request-seq-id',             'i'),
-    WireField('ice-request-market-type',        'h'),
-    WireField('ice-num-of-markets',             'h'),
-    WireField('ice-market-id',                  'i'),
-    WireField('ice-underlying-market-id',       'i'),
-    WireField('ice-contract-symbol',            '35s', type=TrimmedString),
-    WireField('ice-trading-status',             'c'),
-    WireField('ice-order-price-denominator',    'c'),
-    WireField('ice-increment-price',            'i'),
-    WireField('ice-increment-qty',              'i'),
-    WireField('ice-min-qty',                    'i'),
-    WireField('ice-number-of-leg-definition',   'b'),  # repeating group...
-    WireField('ice-leg-body-length',            'b'),
-    WireField('ice-leg-market-id',              'i'),
-    WireField('ice-leg-underlying-market-id',   'i'),
-    WireField('ice-leg-ratio',                  'h'),
-    WireField('ice-leg-side',                   'i'),
-    WireField('ice-number-of-hedge-definition', 'b'),  # repeating group...
-    WireField('ice-hedge-body-length',          'b'),
-    WireField('ice-hedge-market-id',            'i'),
-    WireField('ice-hedge-security-type',        'c'),
-    WireField('ice-hedge-side',                 'c'),
-    WireField('ice-hedge-price',                'q'),
-    WireField('ice-hedge-price-denominator',    'c'),
-    WireField('ice-hedge-delta',                'i'),
-], endian='Big')
-
-StrategyDefResponseFutures = Descriptor([
-    WireField('ice-request-seq-id',           'i'),
-    WireField('ice-request-market-type',      'h'),
-    WireField('ice-num-of-markets',           'h'),
-    WireField('ice-market-id',                'i'),
-    WireField('ice-contract-symbol',          '70s', type=TrimmedString),
-    WireField('ice-trading-status',           'c'),
-    WireField('ice-order-price-denominator',  'c'),
-    WireField('ice-increment-price',          'i'),
-    WireField('ice-increment-qty',            'i'),
-    WireField('ice-min-qty',                  'i'),
-    WireField('ice-number-of-leg-definition', 'b'),  # repeating group...
-    WireField('ice-leg-body-length',          'b'),
-    WireField('ice-leg-market-id',            'i'),
-    WireField('ice-leg-ratio',                'h'),
-    WireField('ice-leg-side',                 'i'),
-], endian='Big')
-
-# # Historical Replay
-HistoricalRequest = Descriptor([
-    WireField('ice-request-seq-id',        'i'),
-    WireField('ice-multicast-group-addr',  '15s', type=TrimmedString),
-    WireField('ice-multicast-port',        'h'),
-    WireField('ice-session-id',            'h'),
-    WireField('ice-start-sequence-number', 'i'),
-    WireField('ice-end-sequence-number',   'i'),
-], endian='Big')
-
-HistoricalResponse = Descriptor([
-    WireField('ice-request-seq-id',        'i'),
-    WireField('ice-multicast-group-addr',  '15s', type=TrimmedString),
-    WireField('ice-multicast-port',        'h'),
-    WireField('ice-session-id',            'h'),
-    WireField('ice-start-sequence-number', 'i'),
-    WireField('ice-end-sequence-number',   'i'),
-], endian='Big')
-
-# # Debug Message
-DebugRequest = Descriptor([
-    WireField('ice-request-seq-id', 'i'),
-], endian='Big')
-
-DebugResponse = Descriptor([
-    WireField('ice-request-seq-id', 'i'),
-    WireField('ice-text',           '60s', type=TrimmedString),
-], endian='Big')
-
-# # HeartBeat
-HeartBeat = Descriptor([
-    WireField('ice-request-seq-id', 'i'),
-], endian='Big')
-
-# # Logout
-LogoutRequest = Descriptor([
-    WireField('ice-request-seq-id', 'i'),
-], endian='Big')
-
-MarketStatistics = Descriptor([
-  WireField('ice-market-id', 'i'),
-  WireField('ice-volume', 'i'),
-  WireField('ice-block-volume', 'i'),
-  WireField('ice-efs-volume', 'i'),
-  WireField('ice-efp-volume', 'i'),
-  WireField('ice-high', 'l'),
-  WireField('ice-low', 'l'),
-  WireField('ice-vwap', 'l'),
-  WireField('ice-date-time', 'l'),
-], endian='Big')
-
-# TCP Messages
-
-# # Login
-LoginRequest = Descriptor([
-    WireField('ice-request-seq-id',          'i'),
-    WireField('ice-user-name',               '30s', type=TrimmedString),
-    WireField('ice-password',                '30s', type=TrimmedString),
-    WireField('ice-get-strip-info-messages', 'c'),
-    WireField('resv1',                       'h',   hidden=True),
-], endian='Big')
-
-LoginResponse = Descriptor([
-    WireField('ice-request-seq-id',            'i'),
     WireField('ice-code',                      'c'),
     WireField('ice-text',                      '120s', type=TrimmedString),
     WireField('ice-market-types-permissioned', '300s', type=TrimmedString)
