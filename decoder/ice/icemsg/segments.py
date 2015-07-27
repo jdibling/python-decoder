@@ -31,7 +31,7 @@ MarketSnapshot = Descriptor([
     WireField('last-trade-quantity',                       'i'),
     WireField('last-trade-date-time',                       'q'),
     WireField('settle-price-date-time',                     'q'),
-    WireField('last-messages-equenceid',                   'i'),
+    WireField('last-message-sequenceid',                   'i'),
     WireField('reserved-field1',                           'h'),
     WireField('open-interest-date',                        '10s', type=TrimmedString),
     WireField('is-settle-price-official',                  'c'),
