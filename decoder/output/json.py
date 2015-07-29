@@ -1,13 +1,14 @@
-import os.path
+from __future__ import absolute_import
 
+import os.path
 import base.decoder
 import datetime
 import base.types
 from base.decoder import Verbosity
 from base.exceptions import LinkInitError
-#import json
+import json
 import sys
-import simplejson as json
+#import simplejson as json
 import scripts.seq_checkers.bytestostring as stream_id_converter
 import os
 import gzip
@@ -32,10 +33,10 @@ def finalize_file(file):
 
 class Decoder(base.decoder.Decoder):
     def __init__(self, opts, next_decoder):
+        print "json.dump(1)"
         super(Decoder, self).__init__('json', opts, next_decoder)
         self.__parse_options(opts)
         self.msg_type_counts = {}
-        self.out_file = None
 
     def __finalize_files(self):
         if self.separate_by_channel:
@@ -116,7 +117,7 @@ class Decoder(base.decoder.Decoder):
             self.out_file = gzip.open(out_filename, 'w')
         else:
             out_filename += ".tmp"
-            self.out_file = open(out_filename, 'w')
+            self.out_file = open(out_filename, 'wb')
         return self.out_file
 
     def on_message(self, context, payload):
@@ -130,9 +131,10 @@ class Decoder(base.decoder.Decoder):
             channel_id = context['pcap-udp-stream-id']
             self.out_file = self.out_files.get(channel_id, None)
             if self.out_file is None:
+                print "making new file ", channel_id
                 self.out_file = self.open_channel_file(channel_id)
                 self.out_files[channel_id] = self.out_file
-
+        #json.dump(context, self.out_file, cls=CustomEncoder)
         print >>self.out_file, json.dumps(context, cls=CustomEncoder)
 
         self.dispatch_to_next(context, payload)
