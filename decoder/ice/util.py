@@ -12,6 +12,11 @@ def inc_request_seq_id():
     return __request_seq_id
 
 
+request_tcp_map = {'1': ['63.247.112.185', 80, 'picofxps', 'IatA.Lmi!'],
+                   '2': ['63.247.112.190', 80, 'picofxps', 'IatA.Lmi!'],
+                   '3': ['63.247.125.185', 80, 'picofxps', 'IatA.Lmi!'],
+                   'api': ['63.247.113.163', 3000, 'pqtllc-ps', 'Starts123']}
+
 def is_ice_heartbeat(payload):
     """
     Checks if payload represents an ICE Heartbeat message. Used to identify end of relevant data stream.
