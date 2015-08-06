@@ -1,4 +1,4 @@
-from base.decoder import Decoder
+from decoder.decoder import Decoder
 from decoder.nyse.bbomsg.segments import *
 
 class Decoder(Decoder):

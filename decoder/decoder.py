@@ -1,6 +1,7 @@
-from base.exceptions import *
-from base.verbosity import Verbosity
+from .exceptions import *
+from .verbosity import Verbosity
 import gzip
+
 
 class Decoder(object):
     """  Decoder base class

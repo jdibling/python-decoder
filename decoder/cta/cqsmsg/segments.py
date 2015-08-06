@@ -1,5 +1,5 @@
-from base.field import WireField, TrimmedString
-from base.descriptor import Descriptor
+from decoder.field import WireField, TrimmedString
+from decoder.descriptor import Descriptor
 
 from decoder.cta.types import TimeStamp
 

@@ -1,4 +1,4 @@
-from decoder.cta.cqs.segments import *
+from decoder.cta.cqsmsg.segments import *
 
 MsgType = {
     'E': ('Equity', {

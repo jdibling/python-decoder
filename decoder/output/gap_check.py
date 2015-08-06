@@ -2,10 +2,10 @@ import os.path
 from sys import exit
 import decimal
 
-import decoder.base
+import decoder.decoder
 
 
-class Decoder(decoder.base.Base):
+class Decoder(decoder.decoder.Decoder):
     """  gap-check meta decoder
 
             gap-check is a meta-decoder that finds sequence gaps

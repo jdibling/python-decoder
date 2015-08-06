@@ -1,7 +1,7 @@
-from base.field import BasicField, WireField, ComputedField, RepeatingGroup, LookupField, TrimmedString
-from base.descriptor import Descriptor
+from decoder.field import BasicField, WireField, ComputedField, RepeatingGroup, LookupField, TrimmedString
+from decoder.descriptor import Descriptor
 
-from base.decoder import Decoder, Verbosity
+from decoder.decoder import Decoder, Verbosity
 
 from decoder.cta.constants import  InstrumentType, CancelErrorAction
 from decoder.cta.types import TimeStamp, DecDiv, PriceDenominator

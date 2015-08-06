@@ -5,7 +5,7 @@ import traceback
 import signal
 import collections
 import importlib
-from base.exceptions import *
+from .exceptions import *
 
 
 def reject_key(d, key):

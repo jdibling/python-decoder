@@ -1,10 +1,11 @@
 import os.path
 
-import base.decoder
-from base.decoder import Verbosity
-from base.exceptions import LinkInitError
+import decoder.decoder
+from decoder.decoder import Verbosity
+from decoder.exceptions import LinkInitError
 
-class Decoder(base.decoder.Decoder):
+
+class Decoder(decoder.decoder.Decoder):
     def __init__(self, opts, next_decoder):
         super(Decoder, self).__init__('dump', opts, next_decoder)
         self.out_file = None

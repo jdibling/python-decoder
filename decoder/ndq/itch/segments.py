@@ -1,4 +1,4 @@
-from base.descriptor import *
+from decoder.descriptor import *
 from decoder.ndq.itch.types import *
 
 ItchCommonSegment = Descriptor([

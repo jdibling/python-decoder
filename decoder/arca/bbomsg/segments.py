@@ -1,5 +1,5 @@
-from base.descriptor import *
-from decoder.arca.xdp.segments import XdpSegment
+from decoder.descriptor import *
+from decoder.arca.xdpmsg.segments import XdpSegment
 from decoder.arca.bbomsg.constants import BboMsgTypeId
 from decoder.arca.bbomsg.maps import BboSymbolMap
 

@@ -1,4 +1,4 @@
-from base.descriptor import *
+from decoder.descriptor import *
 from decoder.input.capture.pcapng.field import *
 
 

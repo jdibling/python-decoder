@@ -1,4 +1,4 @@
-from base.descriptor import *
+from decoder.descriptor import *
 
 MessageBlock = Descriptor([
     WireField('ice-session-num', 'h'),

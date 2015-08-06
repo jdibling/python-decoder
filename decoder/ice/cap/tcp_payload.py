@@ -1,9 +1,10 @@
 import time
-from base.decoder import Decoder
+from decoder.decoder import Decoder
 from decoder.ice.icemsg.segments import  *
 from decoder.ice.icemsg.constants import *
-from decoder.ice import util as ice_util
-import scripts.seq_checkers.bytestostring as stream_id_converter
+import decoder.ice.util as ice_util
+import decoder.util as decoder_util
+
 
 class Decoder(Decoder):
     """ SpryWare Capture File Decoder
@@ -89,14 +90,14 @@ class Decoder(Decoder):
                 extra_context['ice-session-id'] = response['ice-session-id']
 
                 # stream id is used downstream by the JSON outputter to separate files based on mcast
-                stream_id = stream_id_converter.addrToStreamId(response['ice-multicast-group-addr'],
-                                                               response['ice-multicast-port'])
+                stream_id = decoder_util.addrToStreamId(response['ice-multicast-group-addr'],
+                                                        response['ice-multicast-port'])
                 extra_context['pcap-udp-stream-id'] = stream_id
 
             # if this is a prod def message the streamid must be populated from the known values of the tcp ip/port
             if self.__prod_def:
                 [ip, port, _, _] = ice_util.request_tcp_map[self.__tcp_group]
-                stream_id = stream_id_converter.addrToStreamId(ip, port)
+                stream_id = decoder_util.addrToStreamId(ip, port)
                 extra_context['pcap-udp-stream-id'] = stream_id
 
             # dispatch packet payload to next

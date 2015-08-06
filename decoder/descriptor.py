@@ -1,6 +1,6 @@
-from base.field import *
-from base.types import *
-from base.verbosity import *
+from .field import *
+from .types import *
+from .verbosity import *
 
 class Descriptor(object):
     def __init__(self, fields, **kwargs):

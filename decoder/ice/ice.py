@@ -1,6 +1,7 @@
-from base.decoder import Decoder
-from decoder.ice.icemsg.segments import *
-from decoder.ice.icemsg.constants import *
+from decoder.decoder import Decoder
+from .icemsg.segments import *
+from .icemsg.constants import *
+
 
 class Decoder(Decoder):
     def __init__(self, opts, next_decoder):

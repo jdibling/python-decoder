@@ -1,6 +1,7 @@
-from base.decoder import Decoder
+from decoder.decoder import Decoder
 from decoder.bats.mpitchmsg.segments import *
 from decoder.bats.mpitchmsg.constants import *
+
 
 class Decoder(Decoder):
     def __init__(self, opts, next_decoder):
