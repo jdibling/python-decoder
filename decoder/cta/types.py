@@ -1,5 +1,5 @@
-from base.field import WireField
-from base.types import DecDiv
+from decoder.field import WireField
+from decoder.types import DecDiv
 
 class TimeStamp(object):
     def __init__(self, **kwargs):

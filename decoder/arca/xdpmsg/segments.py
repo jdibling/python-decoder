@@ -1,6 +1,6 @@
-from base.field import BasicField, WireField, ComputedField, RepeatingGroup, LookupField, TrimmedString
-from base.descriptor import Descriptor
-from base.decoder import Decoder, Verbosity
+from decoder.field import BasicField, WireField, ComputedField, RepeatingGroup, LookupField, TrimmedString
+from decoder.descriptor import Descriptor
+from decoder.decoder import Decoder, Verbosity
 
 from decoder.arca.xdpmsg.constants import XdpMsgTypeId, DeliveryFlag, MarketId
 from decoder.arca.xdpmsg.convert import XdpTimeStamp

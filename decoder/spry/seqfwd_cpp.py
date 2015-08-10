@@ -1,7 +1,7 @@
-from base.field import *
-from base.descriptor import Descriptor
+from decoder.field import *
+from decoder.descriptor import Descriptor
 
-from base.decoder import Decoder, Verbosity
+from decoder.decoder import Decoder, Verbosity
 
 from decoder.spry.seqfwd_cppmsg.constants import *
 

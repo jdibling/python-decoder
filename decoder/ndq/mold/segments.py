@@ -1,4 +1,4 @@
-from base.descriptor import *
+from decoder.descriptor import *
 
 MoldPacketHeader = Descriptor([
     WireField('mold-session', '10s', type=TrimmedString),

@@ -1,4 +1,4 @@
-from base.decoder import Decoder
+from decoder.decoder import Decoder
 
 import socket
 from struct import pack

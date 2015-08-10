@@ -1,4 +1,4 @@
-from base.decoder import Decoder
+from decoder.decoder import Decoder
 from decoder.ndq.mold.segments import *
 from decoder.ndq.itch.segments import *
 from decoder.ndq.itch.constants import *

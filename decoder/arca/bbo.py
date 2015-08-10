@@ -1,10 +1,11 @@
 import datetime
 
-from base.decoder import Decoder
+from decoder.decoder import Decoder
 
 from decoder.arca.bbomsg.constants import BboMsgTypeId, BboMsgType
 from decoder.arca.bbomsg.segments import BboSegment
 from decoder.arca.bbomsg.maps import BboSymbolMap
+
 
 class Decoder(Decoder):
 
@@ -12,7 +13,7 @@ class Decoder(Decoder):
         pass
 
     def __init__(self, opts, next_decoder):
-        super(Decoder, self).__init__('arca/ice', opts, next_decoder)
+        super(Decoder, self).__init__('arca/bbo', opts, next_decoder)
         self.__parseOptions(opts)
         self.__unhandledMessages = dict()
         self.__translation = dict()

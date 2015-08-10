@@ -1,8 +1,10 @@
 import time
-from base.decoder import Decoder
+from decoder.decoder import Decoder
 from decoder.ice.icemsg.segments import  *
 from decoder.ice.icemsg.constants import *
-import scripts.seq_checkers.bytestostring as stream_id_converter
+import decoder.ice.util as ice_util
+import decoder.util as decoder_util
+
 
 class Decoder(Decoder):
     """ SpryWare Capture File Decoder
@@ -24,6 +26,9 @@ class Decoder(Decoder):
         self.__fileOffset = opts.get('file-offset', 0)
         self.__read(self.__fileOffset)
         self.__msgOffset = opts.get('msg-offset', 0)
+        self.__login = opts.get('login', False)
+        self.__tcp_group = str(opts.get('tcp-group', None))
+        self.__prod_def = opts.get('prod-def', False)
 
     def cap_file(self):
         if self.__mmapped_cap_file is not None:
@@ -57,7 +62,7 @@ class Decoder(Decoder):
         # main loop
         cont = True
         hdr_bytes = MessageHeader.WireBytes()
-        historical_dict = dict()
+        extra_context = dict()
 
         while cont:
             # read the record header
@@ -82,19 +87,28 @@ class Decoder(Decoder):
             if header['ice-msg-type'] == '8':
                 responses, _ = self.decode_segment(HistoricalResponse, payload[MessageHeader.WireBytes():])
                 response = responses[0]
-                historical_dict['ice-session-id'] = response['ice-session-id']
+                extra_context['ice-session-id'] = response['ice-session-id']
 
                 # stream id is used downstream by the JSON outputter to separate files based on mcast
-                stream_id = stream_id_converter.addrToStreamId(response['ice-multicast-group-addr'],
-                                                               response['ice-multicast-port'])
-                historical_dict['pcap-udp-stream-id'] = stream_id
+                stream_id = decoder_util.addrToStreamId(response['ice-multicast-group-addr'],
+                                                        response['ice-multicast-port'])
+                extra_context['pcap-udp-stream-id'] = stream_id
+
+            # if this is a prod def message the streamid must be populated from the known values of the tcp ip/port
+            if self.__prod_def:
+                [ip, port, _, _] = ice_util.request_tcp_map[self.__tcp_group]
+                stream_id = decoder_util.addrToStreamId(ip, port)
+                extra_context['pcap-udp-stream-id'] = stream_id
 
             # dispatch packet payload to next
             if self.__frames >= self.__msgOffset:
                 context = dict()
                 context.update(header)
-                context.update(historical_dict)
-                self.dispatch_to_next(context, payload)
+                context.update(extra_context)
+                # check for login and that the message isn't a login message
+                if self.__login or \
+                        (header['ice-msg-type'] != '1' and header['ice-msg-type'] != 'A'):
+                    self.dispatch_to_next(context, payload)
 
             # update stats
             self.__frames += 1

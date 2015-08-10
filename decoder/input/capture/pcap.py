@@ -1,7 +1,7 @@
-from base.field import BasicField, WireField, ComputedField, RepeatingGroup, TrimmedString, HexArray, NamedField
-from base.descriptor import Descriptor
+from decoder.field import BasicField, WireField, ComputedField, RepeatingGroup, TrimmedString, HexArray, NamedField
+from decoder.descriptor import Descriptor
 
-from base.decoder import Decoder, Verbosity
+from decoder.decoder import Decoder, Verbosity
 
 from struct import calcsize, unpack_from, pack
 

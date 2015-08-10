@@ -1,10 +1,10 @@
 import collections
 
-from base.field import BasicField, WireField, ComputedField, RepeatingGroup, LookupField, TrimmedString
-from base.descriptor import Descriptor
+from decoder.field import BasicField, WireField, ComputedField, RepeatingGroup, LookupField, TrimmedString
+from decoder.descriptor import Descriptor
 
+from decoder.decoder import Decoder, Verbosity
 
-from base.decoder import Decoder, Verbosity
 
 class Decoder(Decoder):
     """ filter module

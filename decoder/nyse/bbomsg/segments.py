@@ -1,4 +1,4 @@
-from base.descriptor import *
+from decoder.descriptor import *
 
 MessageHeader = Descriptor([
     WireField('bbo-msg-size', 'H', type=int),

@@ -2,10 +2,10 @@ from struct import unpack_from, calcsize
 import traceback
 import decimal
 
-from base.field import BasicField, WireField, ComputedField, RepeatingGroup, TrimmedString
-from base.descriptor import Descriptor
+from decoder.field import BasicField, WireField, ComputedField, RepeatingGroup, TrimmedString
+from decoder.descriptor import Descriptor
 
-from base.decoder import Decoder, Verbosity
+from decoder.decoder import Decoder, Verbosity
 
 
 def toHex (x):

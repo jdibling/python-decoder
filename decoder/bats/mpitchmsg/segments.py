@@ -1,4 +1,4 @@
-from base.descriptor import  *
+from decoder.descriptor import *
 
 UnitHeader = Descriptor([
     WireField('mpitch-hdr-length', 'H', type=int),

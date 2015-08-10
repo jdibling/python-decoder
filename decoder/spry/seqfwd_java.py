@@ -1,8 +1,7 @@
-from base.field import BasicField, WireField, ComputedField, RepeatingGroup, TrimmedString, HexArray
-from base.descriptor import Descriptor
+from decoder.field import BasicField, WireField, ComputedField, RepeatingGroup, TrimmedString, HexArray
+from decoder.descriptor import Descriptor
 
-from base.decoder import Decoder, Verbosity
-
+from decoder.decoder import Decoder, Verbosity
 
 
 class Decoder (Decoder):

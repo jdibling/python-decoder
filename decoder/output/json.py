@@ -1,15 +1,14 @@
 from __future__ import absolute_import
 
 import os.path
-import base.decoder
+import decoder.decoder
 import datetime
-import base.types
-from base.decoder import Verbosity
-from base.exceptions import LinkInitError
+import decoder.types
+from decoder.decoder import Verbosity
+from decoder.exceptions import LinkInitError
 import json
 import sys
-#import simplejson as json
-import scripts.seq_checkers.bytestostring as stream_id_converter
+from decoder.util import *
 import os
 import gzip
 
@@ -31,7 +30,7 @@ def finalize_file(file):
     file.close()
     mark_file_done(name)
 
-class Decoder(base.decoder.Decoder):
+class Decoder(decoder.decoder.Decoder):
     def __init__(self, opts, next_decoder):
         print "json.dump(1)"
         super(Decoder, self).__init__('json', opts, next_decoder)
@@ -106,7 +105,7 @@ class Decoder(base.decoder.Decoder):
         self.sortByKey = bool(opts.get('sort-by-key', False))
 
     def open_channel_file(self, channel):
-        ip = stream_id_converter.bytesToAddr(channel)
+        ip = bytesToAddr(channel)
         ip = ip.replace(":", "-")
         file = self.date + "-" + self.time + self.suffix + ".json"
         out_filename = os.path.join(self.root, "json", self.venue, self.date, ip, file)

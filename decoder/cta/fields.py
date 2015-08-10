@@ -1,4 +1,5 @@
-from base.field import *
+from decoder.field import *
+
 
 class FreeFormTextField(NamedField):
     def __init__(self, field_name, **kwargs):
