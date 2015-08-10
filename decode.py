@@ -10,6 +10,7 @@ import collections
 import importlib
 from base.exceptions import *
 from decoder._version import __version__
+import traceback
 
 def reject_key(d, key):
     """Returns a copy of the dictionary with the specified key removed
@@ -88,6 +89,8 @@ class Main(object):
                 lines.append('An error occurred while processing.  Program will terminate.\n')
                 lines.append('To enable full fidelity of errors, set the "debug" global option to True in your config file.\n')
                 sys.stderr.writelines(lines)
+                import traceback
+                print traceback.format_exc ()
                 raise ex
 
     def parse_options(self):

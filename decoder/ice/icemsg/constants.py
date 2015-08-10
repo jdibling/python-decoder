@@ -11,6 +11,7 @@ MsgTypeIndex = {
     'L': (SystemText,                         'SystemText'),
     'M': (OpenInterest,                       'OpenInterest'),
     'N': (OpenPrice,                          'OpenPrice'),
+    'c': (ClosePrice,                         'ClosePrice'), #v1.1.22
     'O': (SettlementPrice,                    'SettlementPrice'),
     'z': (MarkerIndexPrices,                  'MarkerIndexPrices'),
     'u': (EndOfDayMarketSummary,              'EndOfDayMarketSummary'),
@@ -18,6 +19,8 @@ MsgTypeIndex = {
     'g': (PreOpenPriceIndicator,              'PreOpenPriceIndicator'),
     'V': (IntervalPriceLimitNotification,     'IntervalPriceLimitNotification'),
     '9': (NewFuturesStrategyDefinition,       'NewFuturesStrategyDefinition'),
+    'R': (NewExpiry,                          'NewExpiry'), #v1.1.22
+    'b': (SpecialField,                       'SpecialField'), #v1.1.22
     '?': (UnknownTest,                        'UnknownTest'),
     'D': (SnapshotOrder,                      'SnapshotOrder'),
     'E': (AddModifyOrder,                     'AddModifyOrder'),

@@ -119,7 +119,13 @@ OpenPrice = Descriptor([
     WireField('ice-open-price', 'q'),
     WireField('ice-date-time', 'q'),
 ], endian='Big')
-  
+
+ClosePrice = Descriptor([
+    WireField('ice-market-id', 'i'),
+    WireField('ice-close-price', 'q'),
+    WireField('ice-date-time', 'q'),
+], endian='Big')
+
 SettlementPrice = Descriptor([
     WireField('ice-market-id', 'i'),
     WireField('ice-settlement-price-with-deal-price-precision', 'q'),
