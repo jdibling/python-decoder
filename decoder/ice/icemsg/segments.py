@@ -196,6 +196,52 @@ NewFuturesStrategyDefinition = Descriptor([
     ], RepeatingGroup.ReprCountFromPayload('b'), embed_as='ice-leg-definition'),
 ], endian='Big')
 
+NewExpiry = Descriptor([
+    WireField('ice-market-id', 'i'),
+    WireField('ice-market-type-id', 'h'),
+    WireField('ice-order-price-denominator',     'c'),
+    WireField('ice-increment-price', 'i'),
+    WireField('ice-increment-qty', 'i'),
+    WireField('ice-lot-size', 'i'),
+    WireField('ice-market-desc', '120s', type=TrimmedString),
+    WireField('ice-maturity-year', 'h'),
+    WireField('ice-maturity-month', 'h'),
+    WireField('ice-maturity-day', 'h'),
+    WireField('ice-deal-price-denominator', 'c'),
+    WireField('ice-min-qty', 'i'),
+    WireField('ice-unit-qty', 'i'),
+    WireField('ice-currency', '20s', type=TrimmedString),
+    WireField('ice-cleared-alias', '15s', type=TrimmedString),
+    WireField('ice-min-price', 'q'),
+    WireField('ice-max-price', 'q'),
+    WireField('ice-product-id', 'h'),
+    WireField('ice-product-name', '62s', type=TrimmedString),
+    WireField('ice-hub-id', 'i'),#*
+    WireField('ice-hub-alias', '80s', type=TrimmedString),
+    WireField('ice-strip-id', 'i'),
+    WireField('ice-strip-name', '39s', type=TrimmedString),#*
+    WireField('ice-settle-price-denominator', 'c'),
+    WireField('ice-mic-code', '4s', type=TrimmedString),
+    WireField('ice-unit-qty-denominator', 'c'),
+    WireField('ice-off-exchange-increment-qty-denominator', 'c'),
+    WireField('ice-off-exchange-increment-qty', 'i'),
+    WireField('ice-off-exchange-increment-price', 'i'),
+    WireField('ice-off-exchange-increment-option-price', 'i'),
+    WireField('ice-contract-symbol', '35s', type=TrimmedString),
+    WireField('ice-isin', '12s', type=TrimmedString),
+    WireField('ice-num-decimals-options-price',  'c'),
+    WireField('ice-hedge-market-id', 'i')
+], endian='Big')
+
+#TODO Variable message fields added here.
+SpecialField = Descriptor([
+    RepeatingGroup([
+        WireField('ice-field-id', 'b'),
+        WireField('ice-field-length', 'h'),
+        WireField('ice-value', 'i'),
+    ], RepeatingGroup.ReprCountFromPayload('b'), embed_as='ice-special-fields'),
+], endian='Big')
+
 UnknownTest = Descriptor([
     WireField('ice-market-id', 'i'),
 ], endian='Big') 
@@ -446,20 +492,32 @@ ProductDefResponseFutures = Descriptor([
     WireField('ice-max-price',                   'q'),
     WireField('ice-product-id',                  'h'),
     WireField('ice-product-name',                '62s', type=TrimmedString),
-    WireField('ice-hub-id',                      'h'),
+    WireField('ice-old-hub-id',                  'h'),
     WireField('ice-hub-alias',                   '80s', type=TrimmedString),
-    WireField('ice-strip-id',                    'h'),
-    WireField('ice-strip-alias',                 '39s', type=TrimmedString),
+    WireField('ice-old-strip-id',                'h'),
+    WireField('ice-strip-name',                  '39s', type=TrimmedString),
     WireField('resv1',                           'c'),
     WireField('ice-is-serial-options-supported', 'c'),
     WireField('ice-is-tradable',                 'c'),
     WireField('ice-settle-price-denominator',    'c'),
     WireField('ice-mic-code',                    '4s', type=TrimmedString),
-    WireField('ice-unit-qty-denominator',        'c')
+    WireField('ice-unit-qty-denominator',        'c'),
+    WireField('ice-security-sub-type',           'h'),
+    WireField('ice-hedge-only',                  'c'),
+    WireField('ice-exchaneg-silo',               'c'),
+    WireField('ice-off-exchange-increment-qty-denominator', 'c'),
+    WireField('ice-off-exchange-increment-qty',             'i'),
+    WireField('ice-off-exchange-increment-price',           'i'),
+    WireField('ice-off-exchange-increment-option-price',    'i'),
+    WireField('ice-product-id',                             'i'),
+    WireField('ice-hub-id', 'i'),
+    WireField('ice-strip-id', 'i'),
+    WireField('ice-isin', '12s', type=TrimmedString),
+    #TODO Variable message fields added here.
 ], endian='Big')
 
 StripInfo = Descriptor([
-    WireField('ice-strip-id',    'h'),
+    WireField('ice-old-strip-id','h'),
     WireField('ice-strip-type',  '20s', type=TrimmedString),
     WireField('ice-begin-year',  'h'),
     WireField('ice-begin-month', 'h'),
@@ -467,7 +525,8 @@ StripInfo = Descriptor([
     WireField('ice-end-year',    'h'),
     WireField('ice-end-month',   'h'),
     WireField('ice-end-day',     'h'),
-    WireField('ice-strip-name',  '50s', type=TrimmedString)
+    WireField('ice-strip-name',  '50s', type=TrimmedString),
+    WireField('ice-strip-id',    'i')
 ], endian='Big')
 
 ProductDefResponseOptions = Descriptor([

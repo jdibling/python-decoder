@@ -2,7 +2,7 @@
 
 import sys
 from decoder._version import __version__
-from base.pipeline import Pipeline
+from decoder.pipeline import Pipeline
 
 if __name__ == '__main__':
     print "Decoder version {0}".format(__version__)

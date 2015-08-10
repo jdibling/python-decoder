@@ -14,7 +14,7 @@ import gzip
 
 class CustomEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, base.types.HexArray):
+        if isinstance(obj, decoder.types.HexArray):
             return obj.__str__()
         if isinstance(obj, datetime.datetime):
             return obj.strftime('%Y%m%d-%H:%M:%S.%f')

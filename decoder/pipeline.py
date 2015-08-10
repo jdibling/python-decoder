@@ -88,6 +88,9 @@ class Pipeline(object):
                 lines.append('To enable full fidelity of errors, set the "debug" global option to True in your '
                              'config file.\n')
                 sys.stderr.writelines(lines)
+                import traceback
+                print 'Traceback:'
+                print traceback.format_exc ()
                 raise ex
 
     def parse_config(self, config_filepath):
