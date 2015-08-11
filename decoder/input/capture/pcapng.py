@@ -1,6 +1,6 @@
-from base.decoder import Decoder
+from decoder.decoder import Decoder
 from decoder.input.capture.pcapng.constants import *
-from base.exceptions import *
+from decoder.exceptions import *
 import gzip
 
 class Decoder(Decoder):
