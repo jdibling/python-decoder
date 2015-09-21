@@ -1,11 +1,11 @@
 from decoder.decoder import Decoder
-from decoder.input.capture.pcapng.constants import *
+from decoder.input.capture.pcapngmsg.constants import *
 from decoder.exceptions import *
 import gzip
 
 class Decoder(Decoder):
     def __init__(self, opts, next_decoder):
-        super(Decoder, self).__init__('input/capture/pcapng', opts, next_decoder)
+        super(Decoder, self).__init__('input/capture/pcapngmsg', opts, next_decoder)
         self.__parse_options(opts)
         self.__frame_count = 0
         self.__total_bytes = 0
@@ -49,15 +49,15 @@ class Decoder(Decoder):
 
         headers, headerPayload = self.decode_segment(BlockHeader, headerPayload)
         if len(headers) is not 1:
-            raise ValueError("Internal error decoding pcapng-ng block header")
+            raise ValueError("Internal error decoding pcapngmsg-ng block header")
         header = headers[0]
 
         # get some basic info about this block
-        blockType = header['pcapng-block-type']
-        totalBlockLen = header['pcapng-block-total-length']
+        blockType = header['pcapngmsg-block-type']
+        totalBlockLen = header['pcapngmsg-block-total-length']
         blockTuple = BlockTypes.get(blockType, None)
         if blockTuple is None:
-            raise ValueError("Internal error processing pcapng-ng block:  unhandled block type {0}".format(blockType))
+            raise ValueError("Internal error processing pcapngmsg-ng block:  unhandled block type {0}".format(blockType))
         blockDesc = blockTuple[0]
         blockTypeName = blockTuple[1]
 
@@ -70,7 +70,7 @@ class Decoder(Decoder):
         body = bodies[0]
 
         # if there is a variable-length data field in the block, decode it
-        capLen = body.get('pcapng-captured-length', 0)
+        capLen = body.get('pcapngmsg-captured-length', 0)
         capWireBytes = capLen
         if capLen != 0:
             # see if there are padding bytes
@@ -82,7 +82,7 @@ class Decoder(Decoder):
             fieldPayload = self.read(capWireBytes)
             fieldPayload = fieldPayload[:capLen] # we can just discard the padding bytes; it's garbage
             # store the packet data
-            body.update({'pcapng-packet-data': fieldPayload})
+            body.update({'pcapngmsg-packet-data': fieldPayload})
 
         # decode the block options
         optionsPayloadLen = totalBlockLen
@@ -100,7 +100,7 @@ class Decoder(Decoder):
         if len(footers) is not 1:
             raise ValueError("Internal error decoding block footer")
         footer = footers[0]
-        totalBlockLenCheck = footer['pcapng-block-total-length-check']
+        totalBlockLenCheck = footer['pcapngmsg-block-total-length-check']
         if totalBlockLen != totalBlockLenCheck:
             raise ValueError("Internal error decoding block:  checksum failure")
 
@@ -127,8 +127,8 @@ class Decoder(Decoder):
             if len(headers) is not 1:
                 raise ValueError("Internal error processing block option header")
             header = headers[0]
-            optValLen = header['pcapng-option-length']
-            optType = header['pcapng-option-code']
+            optValLen = header['pcapngmsg-option-length']
+            optType = header['pcapngmsg-option-code']
             optValPayload = payload[:optValLen]
             paddingBytes = (optValLen % 4)
             if paddingBytes > 0:
@@ -151,7 +151,7 @@ class Decoder(Decoder):
         payload = options['tsresol']
         resolOpts, payload = self.decode_segment(TsResolOption, payload)
         if len(resolOpts) is not 1:
-            raise ValueError("Internal error decoding 'tsresol' optional field in InterfaceDescription block in pcapng file")
+            raise ValueError("Internal error decoding 'tsresol' optional field in InterfaceDescription block in pcapngmsg file")
         resolOpt = resolOpts[0]
         resolution = resolOpt['pcap-tsresol']
         resolutionNanos = 1000000000 / pow(10,resolution)
@@ -162,15 +162,16 @@ class Decoder(Decoder):
 
     def __processEnhancedPacket(self, body, header, options):
         # build a 64-bit timestamp from the packet
-        packetPayload = body['pcapng-packet-data']
-        timestamp = body['pcapng-timestamp-high']
+        packetPayload = body['pcapngmsg-packet-data']
+        timestamp = body['pcapngmsg-timestamp-high']
         timestamp <<= 32
-        timestamp += body['pcapng-timestamp-low']
+        timestamp += body['pcapngmsg-timestamp-low']
         # determine the 'units' of the timestamp (how many nanos one unit represents)
-        ifcIdx = body['pcapng-ifc-id']
+        ifcIdx = body['pcapngmsg-ifc-id']
         timestampUnits = self.ifc[ifcIdx][1]
         # compute the timestamp in nanos since epoch
         timestampInNanos = timestamp * timestampUnits
+        body['pcapng-recv-nanos'] = timestampInNanos
         # compute the parts of the timestamp
         tv = timestampInNanos
 
@@ -185,13 +186,13 @@ class Decoder(Decoder):
         # construct a context & pass to next
         context = dict()
         context.update(body)
-        context.update({'pcapng-recv-timestamp': ts})
-        del context['pcapng-packet-data']
+        context.update({'pcapngmsg-recv-timestamp': ts})
+        del context['pcapngmsg-packet-data']
 
         self.on_message(context, packetPayload)
 
     def on_message (self, context, payload):
-        """  Process pcapng Packet
+        """  Process pcapngmsg Packet
 
         :rtype : none
         :param context: Message context build by preceding link in decoder chain
@@ -206,7 +207,7 @@ class Decoder(Decoder):
         if len(ethernetHeaders) is not 1:
             raise ValueError("Internal Error (1)")
         header = ethernetHeaders[0]
-        ethProto = header['pcapng-eth-protocol']
+        ethProto = header['pcapngmsg-eth-protocol']
 
         # if tagged vlan,
         if ethProto == 0x8100:
@@ -214,7 +215,7 @@ class Decoder(Decoder):
             if len(vlanHeaders) is not 1:
                 raise ValueError("Internal Error (2)")
             header.update(vlanHeaders[0])
-            ethProto = header['pcapng-eth-protocol']
+            ethProto = header['pcapngmsg-eth-protocol']
 
         # grab the IP header
         if ethProto == 0x0800:
@@ -229,16 +230,16 @@ class Decoder(Decoder):
 
         # see if the dest-addr is either white-listed or black-listed
         if self.destAddrWhite is not None:
-            destAddr = str(header['pcapng-ip-dest-addr'])
+            destAddr = str(header['pcapngmsg-ip-dest-addr'])
             if destAddr not in self.destAddrWhite:
                 filtered_out = True
         if self.destAddrBlack is not None:
-            destAddr = str(header['pcapng-ip-dest-addr'])
+            destAddr = str(header['pcapngmsg-ip-dest-addr'])
             if destAddr in self.destAddrBlack:
                 filtered_out = True
 
         # unpack the UDP header
-        payloadProtocol = header['pcapng-ip-protocol']
+        payloadProtocol = header['pcapngmsg-ip-protocol']
         if payloadProtocol == 0x11:
             udpHeaders, payload = self.decode_segment(UdpHeader, payload)
             if len(udpHeaders) is not 1:
@@ -251,11 +252,11 @@ class Decoder(Decoder):
 
         # see if the dest port is either whitelisted or blacklisted
         if self.destPortWhite is not None:
-            destPort = str(header['pcapng-udp-dest-port'])
+            destPort = str(header['pcapngmsg-udp-dest-port'])
             if destPort not in self.destPortWhite:
                 filtered_out = True
         if self.destPortBlack is not None:
-            destPort = str(header['pcapng-udp-dest-port'])
+            destPort = str(header['pcapngmsg-udp-dest-port'])
             if destPort in self.destPortBlack:
                 filtered_out = True
 
@@ -266,8 +267,8 @@ class Decoder(Decoder):
 
         # in any case, count it
         if self.__first_recv_timestamp is None:
-            self.__first_recv_timestamp = header['pcapng-recv-timestamp']
-        self.__last_recv_timestamp = header['pcapng-recv-timestamp']
+            self.__first_recv_timestamp = header['pcapngmsg-recv-timestamp']
+        self.__last_recv_timestamp = header['pcapngmsg-recv-timestamp']
 
 
     def run(self):
@@ -283,8 +284,8 @@ class Decoder(Decoder):
 
     def summarize(self):
         return {
-            'pcapng-total-bytes': self.__total_bytes,
-            'pcapng-frame-count': self.__frame_count,
-            'pcapng-first-recv-timestamp': self.__first_recv_timestamp,
-            'pcapng-last-recv-timestamp': self.__last_recv_timestamp
+            'pcapngmsg-total-bytes': self.__total_bytes,
+            'pcapngmsg-frame-count': self.__frame_count,
+            'pcapngmsg-first-recv-timestamp': self.__first_recv_timestamp,
+            'pcapngmsg-last-recv-timestamp': self.__last_recv_timestamp
         }

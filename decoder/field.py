@@ -11,7 +11,8 @@ class BasicField(object):
         if kwargs.get ('hidden', False) == True:
             self.__verbosity = Verbosity.Silent
         self.__shown = True
-
+    def __repr__(self):
+        return "BasicField"
     def eval(self, payload, contexts):
         pass
 
@@ -36,6 +37,8 @@ class NamedField(BasicField):
         self.fieldName = fieldName
     def name(self):
         return self.fieldName
+    def __repr__(self):
+        return "{0}.NamedField: '{1}'".format(super(NamedField, self).__repr__(), self.fieldName)
 
 """ EchoField
 

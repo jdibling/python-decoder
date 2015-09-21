@@ -2,9 +2,8 @@ import datetime
 
 from decoder.decoder import Decoder
 
-from decoder.arca.bbomsg.constants import BboMsgTypeId, BboMsgType
-from decoder.arca.bbomsg.segments import BboSegment
-from decoder.arca.xdpmsg.convert import XdpTimeStamp
+from decoder.arca.integratedmsg.constants import *
+from decoder.arca.integratedmsg.segments import *
 
 
 class Decoder(Decoder):
@@ -13,7 +12,7 @@ class Decoder(Decoder):
         pass
 
     def __init__(self, opts, next_decoder):
-        super(Decoder, self).__init__('arca/bbo', opts, next_decoder)
+        super(Decoder, self).__init__('arca/integrated', opts, next_decoder)
         self.__parseOptions(opts)
         self.__unhandledMessages = dict()
         self.__translation = dict()
@@ -61,7 +60,7 @@ class Decoder(Decoder):
                 self.__unhandledMessages[xdpMsgType] = self.__unhandledMessages.get(xdpMsgType, 0) + 1
                 payload = payload[xdpMsgSize:]
                 unhandled = commonHeader
-                unhandled['bb-msg-type-name'] = 'unhandled'
+                unhandled['xdp-msg-type-name'] = 'unhandled'
                 self.dispatch_to_next(unhandled, payload)
                 continue
 
@@ -75,9 +74,6 @@ class Decoder(Decoder):
                 raise ValueError("Internal error parsing XdpBboMessage type {0}: {1}".format(xdpMsgType, BboMsgType[xdpMsgType]))
             message = messages[0]
             message['xdp-msg-type-name'] = BboMsgType[xdpMsgType]
-
-            if message['xdp-msg-type-name'] == 'BboQuote':
-                bk = True
 
             symbolIdx = message.get('xdp-symbol-index', None)
 
@@ -105,14 +101,6 @@ class Decoder(Decoder):
                 timeRef = self.__timeRefIndex.get(symbolIdx, None)
                 nano = message.get('xdp-source-time-nano', None)
                 if timeRef is not None and nano is not None:
-                    totalNanos = (timeRef*1000000000)+nano
-                    message['xdp-timestamp-nanos'] = totalNanos
-                    message['xdp-recv-latency-nano'] = context['pcapng-recv-nanos'] - totalNanos
-                message['xdp-nano'] = nano
-                # if this msg doesnt have a time reference, add it
-                if timeRef is not None and 'xdp-source-time-sec' not in message and nano is not None:
-                    message['xdp-source-time-sec'] = timeRef + (float(nano) / 1000000000.0)
-                if timeRef is not None and nano is not None:
                     mic = int(nano) / 1000
                     dt = datetime.datetime.fromtimestamp(timeRef)
                     dt = dt.replace(microsecond=mic)
@@ -121,20 +109,6 @@ class Decoder(Decoder):
 
 #                message['xdp-symbol-len'] = len(symbol)
 #                message['xdp-symbol-hex'] = self.toHex(symbol)
-
-            # business logic:  compute difference between send time and source time (matching engine time)
-            if 'xdp-source-timestamp' not in message:
-                if 'xdp-source-time-sec' in message and 'xdp-source-time-nano' in message:
-                    converter = XdpTimeStamp('xdp-source-time-sec', 'xdp-source-time-nano')
-                    message['xdp-source-timestamp'] = converter(message)
-            if 'xdp-source-timestamp' in message:
-                source_send_latency = packet['xdp-send-timestamp'] - message['xdp-source-timestamp']
-                message['xdp-source-send-latency'] = source_send_latency
-                message['xdp-source-send-latency-millis'] = float((source_send_latency.seconds * 1000000) + source_send_latency.microseconds) / 1000.0
-                if 'pcapngmsg-recv-timestamp' in context:
-                    source_recv_latency = context['pcapngmsg-recv-timestamp'] - message['xdp-source-timestamp']
-                    message['xdp-source-recv-latency'] = source_recv_latency
-                    message['xdp-source-recv-latency-millis'] = float((source_recv_latency.seconds * 1000000) + source_recv_latency.microseconds) / 1000.0
 
 
             # see if we should send this message down the chain

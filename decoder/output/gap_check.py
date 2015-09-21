@@ -27,7 +27,7 @@ class Decoder(decoder.decoder.Decoder):
     """
 
     def __init__(self, opts, next_decoder):
-        super(Decoder, self).__init__('gap-check', next_decoder)
+        super(Decoder, self).__init__('output/gap_check', opts, next_decoder)
         self.opts = opts
         self.last_packet = None  # last packet seen, used to detect gaps
         self.ttl_processed = 0  # total messages processed
@@ -59,7 +59,7 @@ class Decoder(decoder.decoder.Decoder):
         if 'msg-seq-num' not in context:
             return
 
-        msg_seq_num = context['msg-seq-num']
+        msg_seq_num = context['sequence-number']
         expected_seq_num = None
 
         # Compute the expected next sequence number by looking
@@ -79,9 +79,11 @@ class Decoder(decoder.decoder.Decoder):
                 gapped, str(cur_time))
             if self.gaps_file is not None:
                 for gap in range(expected_seq_num, msg_seq_num):
-                # print '*GAP*\t{0}: {1}'.format(gap, str(cur_time))
-                    self.gaps_file.write('msg-seq-num={0},time={1}\n'.format(gap, str(cur_time)))
-                self.gaps_file.flush()
+                    if self.gaps_file is None:
+                        print '*GAP*\t{0}: {1}'.format(gap, str(cur_time))
+                    else:
+                        self.gaps_file.write('msg-seq-num={0},time={1}\n'.format(gap, str(cur_time)))
+                        self.gaps_file.flush()
 
 
 
@@ -94,10 +96,7 @@ class Decoder(decoder.decoder.Decoder):
     def summarize(self):
         return {
             'gapcheck-ttl-messages': self.ttl_processed,
-            'gapcheck-ttl-gaps': self.ttl_gapped,
-            'gapcheck-pct-gaps': '{0:.5f}%'.format(
-                (decimal.Decimal(self.ttl_gapped) / decimal.Decimal(self.ttl_processed))
-            )
+            'gapcheck-ttl-gaps': self.ttl_gapped
         }
 
 

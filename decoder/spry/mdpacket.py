@@ -1,3 +1,4 @@
+from decoder.spry.mdpacketmsg.segments import *
 from struct import unpack_from, calcsize
 import traceback
 import decimal
@@ -100,6 +101,10 @@ class Decoder(Decoder):
                 self.fieldValueTranslationDictionary.append(None)
 
             self.fieldValueTranslationDictionary[FidNames['transaction-type']] = TransactionTypes
+
+            # For TCP reassembly
+            self.__tcp_streams = dict()
+
         except Exception as ex:
             print 'V'*20
             print 'Exception of type {0} occured.  Arguments: {1}'.format(
@@ -117,7 +122,7 @@ class Decoder(Decoder):
         self.decodePrices = bool(opts.get('decode-prices', False))
 
     def __valid_signature(self, x):
-        if x == '0x4239':
+        if x == 0x4239:
             return True
         return False
 
@@ -372,7 +377,7 @@ class Decoder(Decoder):
             """
             fid_template = fid_fields[0] & 0x03
 
-            fieldContext = {'$md-fid-template': fid_template, 'pcapng-recv-timestamp': context['pcapng-recv-timestamp'], '#field-num': fieldNum}
+            fieldContext = {'$md-fid-template': fid_template, '#field-num': fieldNum}
             fnDecodeFieldHeader = self.fieldHeaderJumpTable[fid_template]
             payload = fnDecodeFieldHeader(fieldContext, payload)
 
@@ -422,8 +427,82 @@ class Decoder(Decoder):
             pdb.post_mortem()
             print '^'*20
 
+    def reassemble_tcp(self, context, payload):
+
+        if context.get('tcp-packet', False) is False:
+            return context, payload
+        # this is a tcp packet that needs to be reassembled
+        # each dest port is a distinct data stream
+        # If we have never seen data for a given stream
+        # (indicated by the lack of entry in the dict below)
+        # then we need to throw data away until we find the
+        # beginning of a packet, indicated by the presence
+        # of the magic numnber in the packet header.
+        # If we have seen data for the stream, then we keep
+        # appending data to the stream until we accumulate
+        # all the bytes for the packet, then we send that
+        # back to on_message()
+
+        # grab the tcp stream id
+        stream_id = context['tcp-stream-id']
+
+        if self.__tcp_streams.get(stream_id, None) is None:
+            # we haven't seen this stream yet
+            # decode what should be the packet header
+            # add this payload to the stream buffer
+            pkt_hdrs, payload = self.decode_segment(PacketHeader, payload, peek=True)
+            if len(pkt_hdrs) is not 1:
+                raise ValueError("Internal error decoding MDPacket header during TCP reconstruction")
+            pkt_hdr = pkt_hdrs[0]
+            if not self.__valid_signature(pkt_hdr['md-signature']):
+                # this is not the beginning of a packet
+                # we will do nothing
+                return None, None
+            else:
+                # this is the beginning of a new packet
+                # add it to the stream buffer
+                self.__tcp_streams[stream_id] = (pkt_hdr['md-total-length'], payload)
+        else:
+            # we have seen this stream before
+            # add the data to the buffer
+            if self.__valid_signature(pkt_hdr['md-signature']):
+                # this is the beginning of a packet
+                self.__tcp_streams[stream_id] = (pkt_hdr['md-total-length'], payload)
+            else:
+                # a continuation packet -- just append the payload
+                self.__tcp_streams[stream_id][1].append(payload)
+
+        # now check to see if we have a full packet
+        bytes_expected = self.__tcp_streams[stream_id][0]
+        bytes_recieved = len(self.__tcp_streams[stream_id][1])
+        if bytes_recieved >= bytes_expected:
+            # send those bytes & remove them from the buffer
+            send_payload = self.__tcp_streams[stream_id][1][0:bytes_expected]
+            remain_payload = self.__tcp_streams[stream_id][1][bytes_expected:]
+            if len(remain_payload) > 0:
+                # peel open the next header
+                next_headers, remain_payload = self.decode_segment(PacketHeader, remain_payload, peek=True)
+                if len(next_headers) is not 1:
+                    raise ValueError("Internal error while decoding MDPacket header for TCP Reconstruction of remaining payload")
+                next_header = next_headers[0]
+                self.__tcp_streams[stream_id] = (next_header['md-total-length'], remain_payload)
+            else:
+                self.__tcp_streams[stream_id] = None
+            return context, send_payload
+        else:
+            # we still need more bytes...
+            return None, None
+
+
+
     def on_message(self, context, payload):
         try:
+            # if we need to reassemble tcp packets...
+            context, payload = self.reassemble_tcp(context, payload)
+            if context is None:
+                # we need more data
+                return
+
             if self.showPayloads:
                 context['msg-payload-length'] = len (payload)
                 context['msg-payload'] = toHex (payload[0:])
@@ -431,34 +510,10 @@ class Decoder(Decoder):
             if self.verbose:
                 print "=== MESSAGE ===================================" 
             # Peel open the MD_MESSAGE_HEADER
-            md_msg_hdr_fmt = '<'
-            md_msg_hdr_fmt += 'H' # 0 byte order
-            md_msg_hdr_fmt += 'c' # 1 version
-            md_msg_hdr_fmt += 'c' # 2 more
-            md_msg_hdr_fmt += 'c' # 3 data dictionary
-            md_msg_hdr_fmt += 'c' # 4 flags
-            md_msg_hdr_fmt += 'H' # 5 signature
-            md_msg_hdr_fmt += 'I' # 6 length
-            md_msg_hdr_fmt += 'I' # 7 total length
-            md_msg_hdr_fmt += 'I' # 8 orig length
-            md_msg_hdr_fmt += 'I' # 9 field count
-            md_msg_hdr_fmt += 'I' # 10 seq num
-            md_msg_hdr_fmt += 'I' # 11packet count
-
-            md_msg_hdr_fmt_bytes = calcsize(md_msg_hdr_fmt)
-            md_msg_hdr_fields = unpack_from(md_msg_hdr_fmt, payload)
-
-            context['md-packet-byte-order'] = hex(md_msg_hdr_fields[0])
-            context['md-packet-signature'] = '0x%2x' % md_msg_hdr_fields[5]
-            context['md-packet-signature-ok'] = self.__valid_signature(context['md-packet-signature'])
-            context['md-packet-length'] = md_msg_hdr_fields[6]
-            context['md-packet-total-length'] = md_msg_hdr_fields[7]
-            context['md-packet-header-length'] = md_msg_hdr_fmt_bytes
-            context['md-packet-field-count'] = md_msg_hdr_fields[9]
-            context['md-packet-packet-count'] = md_msg_hdr_fields[11]
-
-            payload = payload[md_msg_hdr_fmt_bytes:]
-
+            md_headers, payload = self.decode_segment(PacketHeader, payload)
+            if len(md_headers) is not 1:
+                raise ValueError("Internal error decoding MDPacket Header")
+            md_header = md_headers[0]
 
             # Hack -- peel open the fid table
             fieldNum = 0

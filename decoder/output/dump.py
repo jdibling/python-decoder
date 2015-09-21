@@ -92,23 +92,25 @@ class Decoder(decoder.decoder.Decoder):
                 else:
                     values.append('{0}'.format(context[key]))
 
-        line = ','.join(values)
-        if self.out_file is not None:
-            self.out_file.write('{0}\n'.format(line))
-            self.out_file.flush()
-            if self.verbosity() >= Verbosity.Verbose:
+        if len(values):
+            line = ','.join(values)
+            if self.out_file is not None and len(line) > 0:
+                self.out_file.write('{0}\n'.format(line))
+                self.out_file.flush()
+                if self.verbosity() >= Verbosity.Verbose:
+                    print line
+            else:
                 print line
-        else:
-            print line
 
         self.dispatch_to_next(context, payload)
 
     def stop(self):
         # send the stop up the chain first
         super(Decoder, self).stop()
-        self.out_file.flush()
-        self.out_file.close()
-        self.out_file = None
+        if self.out_file is not None:
+            self.out_file.flush()
+            self.out_file.close()
+            self.out_file = None
 
     def summarize(self):
         return dict()

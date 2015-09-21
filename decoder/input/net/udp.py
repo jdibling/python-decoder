@@ -5,7 +5,7 @@ from struct import pack
 
 class Decoder(Decoder):
     def __init__(self, opts, next_decoder):
-        super(Decoder, self).__init__('input/capture/pcapng', opts, next_decoder)
+        super(Decoder, self).__init__('input/capture/pcapngmsg', opts, next_decoder)
         self.__parse_options(opts)
         self.__frame_count = 0
         self.__total_bytes = 0

@@ -1,9 +1,11 @@
-from decoder.field import BasicField, WireField, ComputedField, RepeatingGroup, TrimmedString, HexArray, NamedField
+from decoder.field import *
 from decoder.descriptor import Descriptor
 
 from decoder.decoder import Decoder, Verbosity
 
 from struct import calcsize, unpack_from, pack
+
+import os
 
 import sys
 import time
@@ -35,6 +37,7 @@ class Decoder (Decoder):
     """
 
     def __parse_options (self, opts):
+        self.__file_size = os.stat(opts['filename']).st_size
         self.pcap = self.open_file(opts['filename'])
         self.destAddrWhite = None
         if 'dest-addrs-allow' in opts:
@@ -48,6 +51,11 @@ class Decoder (Decoder):
         self.destPortBlack = None
         if 'dest-ports-disallow' in opts:
             self.destPortBlack = str(opts['dest-ports-disallow']).split(",;")
+        if 'progress' in opts:
+            self.__pbar_widgets = [self.__fname, Percentage(), ' ', FileTransferSpeed(), ' ', ETA()]
+            self.__pbar = ProgressBar(widgets=self.__pbar_widgets, maxval=self.__file_size)
+            self.__pbar.start()
+
 
     def read(self, bytes):
         payload = self.pcap.read(bytes)
@@ -60,7 +68,9 @@ class Decoder (Decoder):
         
 
     def __init__ (self, opts, next_decoder):
-        super (Decoder, self).__init__ ('capture/pcapng', opts, next_decoder)
+        super (Decoder, self).__init__ ('capture/pcapngmsg', opts, next_decoder)
+        self.__pbar = None
+        self.__pbar_widgets = None
         self.__parse_options (opts)
         # init summary data
         self.__frame_count = 0
@@ -124,6 +134,18 @@ class Decoder (Decoder):
             WireField('pcap-udp-checksum', 'H', type=int),
         ])
 
+        self.NetDescriptor['TcpHeader'] = Descriptor([
+            WireField('pcap-tcp-source-port', 'H'),
+            WireField('pcap-tcp-dest-port', 'H'),
+            WireField('pcap-tcp-seqnum', 'I'),
+            WireField('pcap-tcp-ack-num', 'I'),
+            WireField('pcap-tcp-data-flags', 'I'),
+            WireField('pcap-tcp-checksum', 'B'),
+            WireField('pcap-tcp-urgent-ptr', 'B'),
+            ConstantField('tcp-packet', True),
+            EchoField('tcp-stream-id', 'pcap-tcp-dest-port')
+        ])
+
     def on_message (self, context, payload):
         """  Process pcap Packet
 
@@ -170,9 +192,10 @@ class Decoder (Decoder):
             if destAddr in self.destAddrBlack:
                 filtered_out = True
 
-        # unpack the UDP header
+        # unpack the UDP or TCP header
         payloadProtocol = header['pcap-ip-protocol']
         if payloadProtocol == 0x11:
+            # unpack the UDP header
             udpHeaders, payload = self.decode_segment(self.NetDescriptor['UdpHeader'], payload)
             if len(udpHeaders) is not 1:
                 raise ValueError("Internal Error (4)")
@@ -183,6 +206,22 @@ class Decoder (Decoder):
             stream_id = stream_id | udpHeaders[0]['pcap-udp-dest-port']
             udpHeaders[0]['pcap-udp-stream-id'] = stream_id#NamedField('pcap-udp-stream-id', type=int)
             header.update(udpHeaders[0])
+        elif payloadProtocol == 0x06:
+            # unpack the TCP header
+            tcpHeaders, payload = self.decode_segment(self.NetDescriptor['TcpHeader'], payload)
+            if len(tcpHeaders) is not 1:
+                raise ValueError("Internal Error decoding TCP Header")
+            tcpHeader = tcpHeaders[0]
+            src_port = tcpHeader['pcap-tcp-source-port']
+            dst_port = tcpHeader['pcap-tcp-dest-port']
+            data_offset = int(tcpHeader['pcap-tcp-data-flags'])
+            db = bin(data_offset)
+            data_offset = (data_offset & 0xF0000000) >> (32-4)
+            data_offset_idx = data_offset * 4 # 32-bit words
+            # advance the payload beyond the rest of the tcp header
+            adv_len = data_offset_idx - self.NetDescriptor['TcpHeader'].WireBytes()
+            payload = payload[adv_len:]
+            header.update(tcpHeader)
         else:
             if self.verbose():
               print "Unhandled payload protocol:{0}".format(hex(payloadProtocol))

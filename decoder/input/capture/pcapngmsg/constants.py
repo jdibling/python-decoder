@@ -1,4 +1,4 @@
-from decoder.input.capture.pcapng.segments import *
+from decoder.input.capture.pcapngmsg.segments import *
 
 BlockTypes = {
     0x00000001: (InterfaceDefinition, "InterfaceDefinition"),

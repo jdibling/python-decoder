@@ -1,5 +1,7 @@
 from decoder.decoder import Decoder
-from decoder.input.capture.cap.segments import *
+from decoder.input.capture.capmsg.segments import *
+from progressbar import *
+from os import stat
 
 class Decoder(Decoder):
     """ SpryWare Capture File Decoder
@@ -11,6 +13,7 @@ class Decoder(Decoder):
 
         # open the cap file
         self.__fname = opts.get('filename', None)
+        self.__file_size = os.stat(self.__fname).st_size
         self.__cap_file = open(opts.get ('filename', None), 'r')
         # if mmapped mode enabled, get a file mapping
         if opts.get('mapped-mode', False) is True:
@@ -18,6 +21,12 @@ class Decoder(Decoder):
             self.__mapped_cap_file = mmap.mmap(self.__cap_file.fileno(), 0, prot=mmap.PROT_READ)
 
         self.__max_packet_count = opts.get('max-packets', None)
+        self.__frame_count = 0
+        self.__pbar = None
+        if opts.get('progress', False) is True:
+            self.__pbar_widgets = [self.__fname, Percentage(), ' ', FileTransferSpeed(), ' ', ETA()]
+            self.__pbar = ProgressBar(widgets=self.__pbar_widgets, maxval=self.__file_size)
+            self.__pbar.start()
 
     def cap_file(self):
         if self.__mmapped_cap_file is not None:
@@ -109,6 +118,8 @@ class Decoder(Decoder):
 
             # dispatch packet payload to next
             context = dict()
+            self.__frame_count += 1
+            context['cap-frame-num'] = self.__frame_count
             context.update(record)
             context.update(packet)
             context.update(footer)
@@ -123,6 +134,9 @@ class Decoder(Decoder):
             if self.__max_packet_count is not None:
                 if self.__frames >= self.__max_packet_count:
                     cont = False
+
+            if self.__pbar is not None:
+                self.__pbar.update(self.__bytes)
 
 
     def summarize(self):

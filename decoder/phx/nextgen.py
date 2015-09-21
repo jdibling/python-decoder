@@ -315,8 +315,9 @@ class Decoder (Decoder):
             WireField('pico-xdp-symbol-index', 'I', type=int),
             WireField('pico-xdp-symbol-seq-num', 'I', type=int),
             WireField('pico-xdp-order-side', 'B', type=int),
+            WireField('pico-xdp-order-duration', 'B', type=int),
             WireField('pico-xdp-reason', 'B', type=int)
-        ], checksize=4+4+1+1)
+        ], checksize=4+4+1+1+1)
 
         self.AppendageDesc[AppendageTypeIndex['ArcaXDPOrderFill']] = Descriptor([
             WireField('pico-xdp-symbol-index', 'I', type=int),
@@ -510,11 +511,12 @@ class Decoder (Decoder):
             # decode each appendage
             appendageCount = messageHeader['pico-msg-appendage-count']
             appendages = []
-            for appendageNum in range(0, appendageCount):
-                # decode the appendage header & body
-                appendage, payload = self.__decodeAppendageHeader(payload)
-                appendage, payload = self.__decodeAppendageBody(payload, appendage)
-                appendages.append(appendage)
+            if len(payload) > 0:
+                for appendageNum in range(0, appendageCount):
+                    # decode the appendage header & body
+                    appendage, payload = self.__decodeAppendageHeader(payload)
+                    appendage, payload = self.__decodeAppendageBody(payload, appendage)
+                    appendages.append(appendage)
 
 
             # pass off to next

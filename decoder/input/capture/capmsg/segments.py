@@ -1,5 +1,5 @@
 from decoder.descriptor import *
-from decoder.input.capture.cap.types import HiResTimeStamp
+from decoder.input.capture.capmsg.types import HiResTimeStamp
 
 FileHeader = Descriptor([
     WireField('cap-file-signature', '8s', type=TrimmedString),
