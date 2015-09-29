@@ -54,6 +54,9 @@ class Decoder(Decoder):
 
         # get some basic info about this block
         blockType = header['pcapngmsg-block-type']
+        if blockType & (1 << 31):
+            # pcap internal block type
+            return (None, None, None)
         totalBlockLen = header['pcapngmsg-block-total-length']
         blockTuple = BlockTypes.get(blockType, None)
         if blockTuple is None:
@@ -62,6 +65,7 @@ class Decoder(Decoder):
         blockTypeName = blockTuple[1]
 
         # decode the block body
+
         blockPayloadLen = blockDesc.WireBytes()
         blockPayload = self.read(blockPayloadLen)
         bodies, blockPayload = self.decode_segment(blockDesc, blockPayload)

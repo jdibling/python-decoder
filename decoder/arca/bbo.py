@@ -104,7 +104,7 @@ class Decoder(Decoder):
                 # handle time references
                 timeRef = self.__timeRefIndex.get(symbolIdx, None)
                 nano = message.get('xdp-source-time-nano', None)
-                if timeRef is not None and nano is not None:
+                if timeRef is not None and nano is not None and 'pcapng-recv-nanos' in context:
                     totalNanos = (timeRef*1000000000)+nano
                     message['xdp-timestamp-nanos'] = totalNanos
                     message['xdp-recv-latency-nano'] = context['pcapng-recv-nanos'] - totalNanos
