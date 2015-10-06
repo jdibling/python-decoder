@@ -81,7 +81,7 @@ class Decoder(Decoder):
 
             symbolIdx = message.get('xdp-symbol-index', None)
 
-            # business logic: handle time reference
+            # business logic: handle time reference message
             if xdpMsgType == BboMsgTypeId['XdpSourceTimeReference']:
                 timeRef = int(message['xdp-time-reference'])
                 self.__timeRefIndex[symbolIdx] = timeRef
@@ -95,46 +95,25 @@ class Decoder(Decoder):
                 self.__translation[symbolIdx] = (symbol, venue, roundLot)
                 self.__symbolIndex[symbolIdx] = symbol
 
-            # business logic: resolve translations & time references
-            if symbolIdx is not None:
-                # handle translations
-                symbol = self.__symbolIndex.get(symbolIdx, None)
-                if symbol is not None:
-                    message['xdp-symbol'] = symbol
-                # handle time references
-                timeRef = self.__timeRefIndex.get(symbolIdx, None)
-                nano = message.get('xdp-source-time-nano', None)
-                if timeRef is not None and nano is not None and 'pcapng-recv-nanos' in context:
-                    totalNanos = (timeRef*1000000000)+nano
-                    message['xdp-timestamp-nanos'] = totalNanos
-                    message['xdp-recv-latency-nano'] = context['pcapng-recv-nanos'] - totalNanos
-                message['xdp-nano'] = nano
-                # if this msg doesnt have a time reference, add it
-                if timeRef is not None and 'xdp-source-time-sec' not in message and nano is not None:
-                    message['xdp-source-time-sec'] = timeRef + (float(nano) / 1000000000.0)
-                if timeRef is not None and nano is not None:
-                    mic = int(nano) / 1000
-                    dt = datetime.datetime.fromtimestamp(timeRef)
-                    dt = dt.replace(microsecond=mic)
-                    message['xdp-timestamp'] = dt
+            # resolve translations
+	    symbol = self.__symbolIndex.get(symbolIdx, None)
+	    if symbol is not None:
+	        message['xdp-symbol'] = symbol
 
+	    # resolve source time reference
+	    source_time_reference = self.__timeRefIndex.get(symbolIdx, None)
+	    if source_time_reference is not None and 'xdp-source-time-nano' in message:
+		    message['xdp-source-time-reference'] = source_time_reference
+		    source_time_mics = message['xdp-source-time-nano']/1000
+		    source_time = datetime.datetime.fromtimestamp(source_time_reference).replace(microsecond=(source_time_mics))
+		    message['xdp-source-timestamp'] = source_time
 
-#                message['xdp-symbol-len'] = len(symbol)
-#                message['xdp-symbol-hex'] = self.toHex(symbol)
+	    # compute the source time vs recv time latency
+	    if 'xdp-source-timestamp' in message and 'pcapngmsg-recv-timestamp' in context:
+		    recv_timestamp = context['pcapngmsg-recv-timestamp']
+		    source_recv_delta = (recv_timestamp - message['xdp-source-timestamp']).microseconds
+		    message ['xdp-source-recv-delta'] = source_recv_delta
 
-            # business logic:  compute difference between send time and source time (matching engine time)
-            if 'xdp-source-timestamp' not in message:
-                if 'xdp-source-time-sec' in message and 'xdp-source-time-nano' in message:
-                    converter = XdpTimeStamp('xdp-source-time-sec', 'xdp-source-time-nano')
-                    message['xdp-source-timestamp'] = converter(message)
-            if 'xdp-source-timestamp' in message:
-                source_send_latency = packet['xdp-send-timestamp'] - message['xdp-source-timestamp']
-                message['xdp-source-send-latency'] = source_send_latency
-                message['xdp-source-send-latency-millis'] = float((source_send_latency.seconds * 1000000) + source_send_latency.microseconds) / 1000.0
-                if 'pcapngmsg-recv-timestamp' in context:
-                    source_recv_latency = context['pcapngmsg-recv-timestamp'] - message['xdp-source-timestamp']
-                    message['xdp-source-recv-latency'] = source_recv_latency
-                    message['xdp-source-recv-latency-millis'] = float((source_recv_latency.seconds * 1000000) + source_recv_latency.microseconds) / 1000.0
 
 
             # see if we should send this message down the chain
