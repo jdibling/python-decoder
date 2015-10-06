@@ -16,8 +16,8 @@ BboSegment.update({
         WireField('xdp-bid-price-unscaled', 'I', type=int),
         WireField('xdp-bid-volume', 'I', type=int),
         WireField('xdp-quote-condition', 'c'),
-        WireField('xdp-rpi-indicator', 'c'),
-        WireField('xdp-transaction-id', 'I'),
+#        WireField('xdp-rpi-indicator', 'c'),
+#        WireField('xdp-transaction-id', 'I'),
     ])
 })
 

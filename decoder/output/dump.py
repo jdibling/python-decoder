@@ -32,6 +32,7 @@ class Decoder(decoder.decoder.Decoder):
             else:
                 self.out_file = open(out_filename, 'w')
 
+
         # See if we're squelching keys
         self.squelch_key = bool(opts.get('squelch-keys', False))
         self.show_remaining = bool(opts.get('show-remaining-payload', False))
@@ -60,6 +61,10 @@ class Decoder(decoder.decoder.Decoder):
                 self.inclusions.append(key)
 
         self.sortByKey = bool(opts.get('sort-by-key', False))
+        self.orderedKeyList = opts.get('key-list', None)
+        if self.orderedKeyList is not None:
+            l = [x.strip() for x in self.orderedKeyList.split(',')]
+            self.orderedKeyList = l
 
     def on_message(self, context, payload):
         """ Dump all processed packets in human-readable fomat
@@ -70,7 +75,9 @@ class Decoder(decoder.decoder.Decoder):
             if self.show_remaining:
                 context['remaining-payload'] = self.toHex(payload)
 
-        if self.sortByKey:
+        if self.orderedKeyList is not None:
+            keyList = self.orderedKeyList
+        elif self.sortByKey:
             keyList = sorted(context.keys())
         else:
             keyList = context.keys()
@@ -86,6 +93,9 @@ class Decoder(decoder.decoder.Decoder):
             if key in self.inclusions:
                 excluded = False
 
+            if key not in context:
+                excluded = True
+                
             if not excluded:
                 if not self.squelch_key:
                     values.append('{0}={1}'.format(key, context[key]))

@@ -96,39 +96,54 @@ class Decoder(Decoder):
                 self.__symbolIndex[symbolIdx] = symbol
 
             # resolve translations
-	    symbol = self.__symbolIndex.get(symbolIdx, None)
-	    if symbol is not None:
-	        message['xdp-symbol'] = symbol
+            symbol = self.__symbolIndex.get(symbolIdx, None)
+            if symbol is not None:
+                message['xdp-symbol'] = symbol
 
-	    # resolve source time reference
-	    source_time_reference = self.__timeRefIndex.get(symbolIdx, None)
-	    if source_time_reference is not None and 'xdp-source-time-nano' in message:
-		    message['xdp-source-time-reference'] = source_time_reference
-		    source_time_mics = message['xdp-source-time-nano']/1000
-		    source_time = datetime.datetime.fromtimestamp(source_time_reference).replace(microsecond=(source_time_mics))
-		    message['xdp-source-timestamp'] = source_time
+            # resolve source time reference
+            source_time_reference = self.__timeRefIndex.get(symbolIdx, None)
 
-	    # compute the source time vs recv time latency
-	    if 'xdp-source-timestamp' in message and 'pcapngmsg-recv-timestamp' in context:
-		    recv_timestamp = context['pcapngmsg-recv-timestamp']
-		    source_recv_delta = (recv_timestamp - message['xdp-source-timestamp']).microseconds
-		    message ['xdp-source-recv-delta'] = source_recv_delta
+            if source_time_reference is not None:
+                if 'xdp-source-time-nano' in message:
+                    message['xdp-source-time-reference'] = source_time_reference
+                    source_time_mics = message['xdp-source-time-nano']/1000
+                    source_time = datetime.datetime.fromtimestamp(source_time_reference).replace(microsecond=(source_time_mics))
+                    message['xdp-source-timestamp'] = source_time
 
+            # compute the source time vs recv time latency
+            recv_timestamp = None
+            if 'pcapngmsg-recv-timestamp' in context:
+                recv_timestamp = context['pcapngmsg-recv-timestamp']
+            elif 'pcap-recv-time-sec' in context:
+                recv_timestamp = context['pcap-recv-timestamp']
 
+            if recv_timestamp is not None:
+                if 'xdp-source-timestamp' in message:
+                    source_recv_delta = (recv_timestamp - message['xdp-source-timestamp']).microseconds
+                    message ['xdp-source-recv-delta'] = source_recv_delta
+
+                # compute send time vs recv time latency
+                if 'xdp-send-timestamp' in packet:
+                    send_recv_delta = (recv_timestamp - packet['xdp-send-timestamp']).microseconds
+                    message ['xdp-send-recv-delta'] = send_recv_delta
+
+            # compute sequence-number
+            sequence = packet.get('xdp-seq-num', None)
+            if sequence is not None:
+                sequence_number = int(sequence) + msgIdx
+                context.update({'sequence-number': sequence_number})
+            else:
+                no_present = True
 
             # see if we should send this message down the chain
             if segment.verbosity() <= self.verbosity():
                 # build context
                 context.update(packet)
                 context.update(message)
-                # compute sequence-number
-                sequence = packet.get('xdp-seq-num', None)
-                if sequence is not None:
-                    sequence_number = int(sequence) + msgIdx
-                    context.update({'sequence-number': sequence_number})
                 # send the context
                 self.dispatch_to_next(context, messagePayload)
-
+            else:
+                bk = True
 
 
 

@@ -1,6 +1,6 @@
-from decoder.field import BasicField, WireField, ComputedField, RepeatingGroup, LookupField, TrimmedString
+from decoder.field import *
 from decoder.descriptor import Descriptor
-from decoder.decoder import Decoder, Verbosity
+from decoder.decoder import Verbosity
 
 from decoder.arca.xdpmsg.constants import XdpMsgTypeId, DeliveryFlag, MarketId
 from decoder.arca.xdpmsg.convert import XdpTimeStamp
@@ -34,7 +34,7 @@ XdpSegment = {
         WireField('xdp-symbol-index', 'I', type=int),
         WireField('xdp-symbol-seq-num', 'I', type=int),
         WireField('xdp-time-reference', 'I', type=int)
-    ], verbosity=Verbosity.Verbose),
+    ]),
     XdpMsgTypeId['XdpSymbolIndexMapping']: Descriptor([
         WireField('xdp-msg-size', 'H', type=int),
         WireField('xdp-msg-type', 'H', type=int),

@@ -56,9 +56,13 @@ class Decoder(decoder.decoder.Decoder):
         :return: none
         :rtype:  none
         """
-        if 'msg-seq-num' not in context:
-            return
 
+        if 'sequence-number' in context:
+            self.__process_sequence_number(context, payload)
+
+        self.dispatch_to_next(context, payload)
+
+    def __process_sequence_number(self, context, payload):
         msg_seq_num = context['sequence-number']
         expected_seq_num = None
 
@@ -67,25 +71,25 @@ class Decoder(decoder.decoder.Decoder):
         # If we've never gotten a message before, assume
         # we're gap-free. :)
         if self.last_packet is not None:
-            expected_seq_num = self.last_packet['msg-seq-num'] + 1
+            expected_seq_num = self.last_packet['sequence-number'] + 1
 
-        # If there is a gap, report how many packets were lost and at what time
+        # If there is a gap, report how many packets were lost
         if (expected_seq_num is not None) and (expected_seq_num != msg_seq_num):
-            cur_time = context['recv-timestamp']
             gapped = msg_seq_num - expected_seq_num
             self.ttl_gapped += gapped
 
-            print '*SEQUENCE GAP* lost {0} packets at {1}'.format(
-                gapped, str(cur_time))
+            print '*SEQUENCE GAP* lost {0} packets starting at {1}'.format(
+                gapped,
+                expected_seq_num)
+
+            # if we're writing to a log file...
             if self.gaps_file is not None:
                 for gap in range(expected_seq_num, msg_seq_num):
                     if self.gaps_file is None:
                         print '*GAP*\t{0}: {1}'.format(gap, str(cur_time))
                     else:
-                        self.gaps_file.write('msg-seq-num={0},time={1}\n'.format(gap, str(cur_time)))
+                        self.gaps_file.write('sequence-number={0},time={1}\n'.format(gap, str(cur_time)))
                         self.gaps_file.flush()
-
-
 
         # Update summary stats
         self.ttl_processed += 1

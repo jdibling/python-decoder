@@ -41,7 +41,8 @@ class Decoder (Decoder):
             WireField ('seqfwd-ask-scale', 'I'),
             WireField ('seqfwd-ask-size', 'I'),
             WireField ('seqfwd-symbol', '12s', type=TrimmedString),
-            WireField ('seqfwd-market', '4s', type=TrimmedString)
+            WireField ('seqfwd-market', '4s', type=TrimmedString),
+            EchoField ('sequence-number', 'seqfwd-seq-num')
         ])
 
 

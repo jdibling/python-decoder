@@ -4,7 +4,6 @@ from decoder.descriptor import Descriptor
 from decoder.decoder import Decoder, Verbosity
 
 from struct import calcsize, unpack_from, pack
-
 import os
 
 import sys
@@ -52,7 +51,7 @@ class Decoder (Decoder):
         if 'dest-ports-disallow' in opts:
             self.destPortBlack = str(opts['dest-ports-disallow']).split(",;")
         if 'progress' in opts:
-            self.__pbar_widgets = [self.__fname, Percentage(), ' ', FileTransferSpeed(), ' ', ETA()]
+            self.__pbar_widgets = [self.pcap.name, Percentage(), ' ', FileTransferSpeed(), ' ', ETA()]
             self.__pbar = ProgressBar(widgets=self.__pbar_widgets, maxval=self.__file_size)
             self.__pbar.start()
 
@@ -229,12 +228,14 @@ class Decoder (Decoder):
 
         # see if the dest port is either whitelisted or blacklisted
         if self.destPortWhite is not None:
-            destPort = header['pcap-udp-dest-port']
-            if destPort not in self.destPortWhite:
+            if 'pcap-udp-dest-port' not in header:
+                bk = True
+            if header.get('pcap-udp-dest-port', None) not in self.destPortWhite:
                 filtered_out = True
         if self.destPortBlack is not None:
-            destPort = str(header['pcap-udp-dest-port'])
-            if destPort in self.destPortBlack:
+            if 'pcap-udp-dest-port' not in header:
+                bk = True
+            if header.get('pcap-udp-dest-port', None) in self.destPortBlack:
                 filtered_out = True
 
         # if this packet isn't filtered out, send it down the line
@@ -334,8 +335,7 @@ class Decoder (Decoder):
                 (secs, nanos) = (timeWhole, timeFrac)
                 if self.__nanosecond is False:
                     nanos *= 1000
-                dt = datetime.datetime.fromtimestamp(secs)
-                dt.replace(microsecond=(nanos/1000))
+                dt = datetime.datetime.fromtimestamp(secs).replace(microsecond=(nanos/1000))
                 packetHeader['pcap-recv-timestamp'] = dt
                 packetHeader['pcap-recv-time-sec'] = '{0}.{1:09d}'.format(secs, nanos)
 
@@ -352,7 +352,8 @@ class Decoder (Decoder):
             'pcap-total-bytes': self.__total_bytes,
             'pcap-frame-count': self.__frame_count,
             'pcap-first-recv-timestamp': self.__first_recv_timestamp,
-            'pcap-last-recv-timestamp': self.__last_recv_timestamp
+            'pcap-last-recv-timestamp': self.__last_recv_timestamp,
+            'pcap-duration': self.__last_recv_timestamp - self.__first_recv_timestamp
         }
 
 
