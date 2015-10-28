@@ -1,7 +1,6 @@
 from decoder.decoder import Decoder
 from decoder.input.capture.capmsg.segments import *
 from progressbar import *
-from os import stat
 
 class Decoder(Decoder):
     """ SpryWare Capture File Decoder
@@ -13,8 +12,12 @@ class Decoder(Decoder):
 
         # open the cap file
         self.__fname = opts.get('filename', None)
+        if opts.get('compressed', False) == True:
+            import gzip
+            self.__cap_file = gzip.open(self.__fname, 'rb')
+        else:
+            self.__cap_file = open(opts.get ('filename', None), 'r')
         self.__file_size = os.stat(self.__fname).st_size
-        self.__cap_file = open(opts.get ('filename', None), 'r')
         # if mmapped mode enabled, get a file mapping
         if opts.get('mapped-mode', False) is True:
             import mmap

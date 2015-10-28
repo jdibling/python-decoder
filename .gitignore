@@ -9,3 +9,8 @@
 
 # PyDecode tarballs
 PyDecode-*.tar
+
+# Setup artifacts
+MANIFEST
+dist/*
+*.egg-info/*
