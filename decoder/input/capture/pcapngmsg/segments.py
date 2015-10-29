@@ -63,12 +63,12 @@ IpHeader = Descriptor([
     WireField('pcapngmsg-ip-protocol', 'B', type=int),
     WireField('pcapngmsg-ip-header-checksum', 'H', type=int),
     WireField('pcapngmsg-ip-source-addr', 'L', type=IpAddrField()),
-    WireField('pcapngmsg-ip-dest-addr', 'L', type=IpAddrField())
+    WireField('pcap-ip-dest-addr', 'L', type=IpAddrField())
 ], endian='Big')
 
 UdpHeader = Descriptor([
     WireField('pcapngmsg-udp-source-port', 'H', type=int),
-    WireField('pcapngmsg-udp-dest-port', 'H', type=int),
+    WireField('pcap-udp-dest-port', 'H', type=int),
     WireField('pcapngmsg-udp-length', 'H', type=int),
     WireField('pcapngmsg-udp-checksum', 'H', type=int)
 ], endian='Big')

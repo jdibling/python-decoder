@@ -176,6 +176,10 @@ class Decoder(Decoder):
         # compute the timestamp in nanos since epoch
         timestampInNanos = timestamp * timestampUnits
         body['pcapng-recv-nanos'] = timestampInNanos
+        timestampInNanosStr = str(timestampInNanos)
+        tsWhole = timestampInNanosStr[:-9]
+        tsFrac = timestampInNanosStr[len(timestampInNanosStr)-len(tsWhole)+1:]
+        body['pcap-recv-time-sec'] = '{0}.{1}'.format(tsWhole, tsFrac)
         # compute the parts of the timestamp
         tv = timestampInNanos
 
