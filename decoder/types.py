@@ -81,6 +81,20 @@ class DecDiv(object):
         self.value = Decimal(leftVal) / Decimal(rightVal)
         return self.value
 
+class Add(object):
+    def __init__(self, lhf, rhf):
+        self.leftField = lhf
+        self.rightField = rhf
+        self.value = None
+    def __str__(self):
+        return '{0}'.format(self.value)
+    def __call__(self, context):
+        leftVal = context[self.leftField]
+        rightVal = context[self.rightField]
+
+        self.value = leftVal + rightVal
+        return self.value
+
 class Sub(object):
     def __init__(self, lhf, rhf):
         self.leftField = lhf
