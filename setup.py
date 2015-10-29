@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='decoder',
-    version='0.0.5',
+    version='0.0.14',
     packages=['3party', '3party.progressbar-2-3', '3party.progressbar-2-3.progressbar', 'decoder', 'decoder.cta',
               'decoder.cta.cqsmsg', 'decoder.ice', 'decoder.ice.cap', 'decoder.ice.icemsg', 'decoder.ndq',
               'decoder.ndq.itch', 'decoder.ndq.mold', 'decoder.phx', 'decoder.phx.nextgenmsg', 'decoder.tmx',
