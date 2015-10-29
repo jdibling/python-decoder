@@ -1,11 +1,8 @@
 from decoder.field import *
 from decoder.descriptor import Descriptor
-
 from decoder.decoder import Decoder, Verbosity
-
 from struct import calcsize, unpack_from, pack
 import os
-
 import sys
 import time
 import datetime
@@ -51,6 +48,7 @@ class Decoder (Decoder):
         if 'dest-ports-disallow' in opts:
             self.destPortBlack = str(opts['dest-ports-disallow']).split(",;")
         if 'progress' in opts:
+            from progressbar import *
             self.__pbar_widgets = [self.pcap.name, Percentage(), ' ', FileTransferSpeed(), ' ', ETA()]
             self.__pbar = ProgressBar(widgets=self.__pbar_widgets, maxval=self.__file_size)
             self.__pbar.start()
