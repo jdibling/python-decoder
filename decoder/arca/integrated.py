@@ -99,7 +99,7 @@ class Decoder(Decoder):
                     message['xdp-symbol'] = symbol
                 # handle time references
                 timeRef = self.__timeRefIndex.get(symbolIdx, None)
-                nano = message.get('xdp-source-time-nano', None)
+                nano = message.get('xdp-source-time-nano-part', None)
                 if timeRef is not None and nano is not None:
                     mic = int(nano) / 1000
                     dt = datetime.datetime.fromtimestamp(timeRef)

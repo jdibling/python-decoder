@@ -11,9 +11,9 @@ XdpSegment = {
         LookupField('xdp-delivery-flag', 'b', DeliveryFlag, type=int),
         WireField('xdp-number-msgs', 'b', type=int),
         WireField('xdp-seq-num', 'I', type=int),
-        WireField('xdp-send-time-sec', 'I', type=int),
-        WireField('xdp-send-time-nano', 'I', type=int),
-        ComputedField('xdp-send-timestamp', XdpTimeStamp('xdp-send-time-sec', 'xdp-send-time-nano'))
+        WireField('xdp-send-time-sec-part', 'I', type=int),
+        WireField('xdp-send-time-nano-part', 'I', type=int),
+        ComputedField('xdp-send-timestamp', XdpTimeStamp('xdp-send-time-sec-part', 'xdp-send-time-nano-part'))
     ]),
     XdpMsgTypeId['XdpCommonHeader']: Descriptor([
         WireField('xdp-msg-size', 'H', type=int),
@@ -22,9 +22,9 @@ XdpSegment = {
    XdpMsgTypeId['XdpSeqNumReset']: Descriptor([
         WireField('xdp-msg-size', 'H', type=int),
         WireField('xdp-msg-type', 'H', type=int),
-        WireField('xdp-source-time-sec', 'I', type=int),
-        WireField('xdp-source-time-nano', 'I', type=int),
-        ComputedField('xdp-source-timestamp', XdpTimeStamp('xdp-source-time-sec', 'xdp-source-time-nano')),
+        WireField('xdp-source-time-sec-part', 'I', type=int),
+        WireField('xdp-source-time-nano-part', 'I', type=int),
+        ComputedField('xdp-source-timestamp', XdpTimeStamp('xdp-source-time-sec-part', 'xdp-source-time-nano-part')),
         WireField('xdp-product-id', 'B', type=int),
         WireField('xdp-channel-id', 'B', type=int)
     ]),
@@ -55,9 +55,9 @@ XdpSegment = {
     XdpMsgTypeId['XdpSecurityStatus']: Descriptor([
         WireField('xdp-msg-size', 'H', type=int),
         WireField('xdp-msg-type', 'H', type=int),
-        WireField('xdp-source-time-sec', 'I', type=int),
-        WireField('xdp-source-time-nano', 'I', type=int),
-        ComputedField('xdp-source-timestamp', XdpTimeStamp('xdp-source-time-sec', 'xdp-source-time-nano')),
+        WireField('xdp-source-time-sec-part', 'I', type=int),
+        WireField('xdp-source-time-nano-part', 'I', type=int),
+        ComputedField('xdp-source-timestamp', XdpTimeStamp('xdp-source-time-sec-part', 'xdp-source-time-nano-part')),
         WireField('xdp-symbol-index', 'I', type=int),
         WireField('xdp-symbol-seq-num', 'I', type=int),
         WireField('xdp-security-status', 'c'),

@@ -8,7 +8,7 @@ BboSegment.update({
     BboMsgTypeId['BboQuote']: Descriptor([
         WireField('xdp-msg-size', 'H', type=int),
         WireField('xdp-msg-type', 'H', type=int),
-        WireField('xdp-source-time-nano', 'I', type=int),
+        WireField('xdp-source-time-nano-part', 'I', type=int),
         WireField('xdp-symbol-index', 'I', type=int),
         WireField('xdp-symbol-seq-num', 'I', type=int),
         WireField('xdp-ask-price-unscaled', 'I', type=int),

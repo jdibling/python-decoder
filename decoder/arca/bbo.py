@@ -102,30 +102,22 @@ class Decoder(Decoder):
 
             # resolve source time reference
             source_time_reference = self.__timeRefIndex.get(symbolIdx, None)
-
             if source_time_reference is not None:
-                if 'xdp-source-time-nano' in message:
+                if 'xdp-source-time-nano-part' in message:
                     message['xdp-source-time-reference'] = source_time_reference
-                    source_time_mics = message['xdp-source-time-nano']/1000
+                    source_time_mics = message['xdp-source-time-nano-part']/1000
                     source_time = datetime.datetime.fromtimestamp(source_time_reference).replace(microsecond=(source_time_mics))
                     message['xdp-source-timestamp'] = source_time
+                    message['xdp-source-time-sec-part'] = source_time_reference
 
-            # compute the source time vs recv time latency
-            recv_timestamp = None
-            if 'pcapngmsg-recv-timestamp' in context:
-                recv_timestamp = context['pcapngmsg-recv-timestamp']
-            elif 'pcap-recv-time-sec' in context:
-                recv_timestamp = context['pcap-recv-timestamp']
+            # resolve the source time and send times to a decimal number
+            if 'xdp-source-time-sec-part' in message and 'xdp-source-time-nano-part' in message:
+                source_time = '{0}.{1}'.format(message['xdp-source-time-sec-part'], str(message['xdp-source-time-nano-part']).zfill(9))
+                message['xdp-source-time-sec'] = source_time
 
-            if recv_timestamp is not None:
-                if 'xdp-source-timestamp' in message:
-                    source_recv_delta = (recv_timestamp - message['xdp-source-timestamp']).microseconds
-                    message ['xdp-source-recv-delta'] = source_recv_delta
-
-                # compute send time vs recv time latency
-                if 'xdp-send-timestamp' in packet:
-                    send_recv_delta = (recv_timestamp - packet['xdp-send-timestamp']).microseconds
-                    message ['xdp-send-recv-delta'] = send_recv_delta
+            if 'xdp-send-time-sec-part' in packet and 'xdp-send-time-nano-part' in packet:
+                send_time = '{0}.{1}'.format(packet['xdp-send-time-sec-part'], str(packet['xdp-send-time-nano-part']).zfill(9))
+                packet['xdp-send-time-sec'] = send_time
 
             # compute sequence-number
             sequence = packet.get('xdp-seq-num', None)
