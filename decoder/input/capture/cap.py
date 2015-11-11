@@ -84,62 +84,68 @@ class Decoder(Decoder):
         packetHeaderBytes = PacketHeader.WireBytes()
         packetFooterBytes = PacketFooter.WireBytes()
         cont = True
-        while cont:
-            # read the record header
-            payload = self.__read(recordHeaderBytes)
-            if len(payload) is 0:
-                # end of file
-                cont = False
-                continue
-            records, payload = self.decode_segment(RecordHeader, payload)
-            if len(records) is not 1:
-                raise ValueError("Internal error processing capture file record header")
-            record = records[0]
-
-            # read the packet header
-            payload = self.__read(packetHeaderBytes)
-            packets, payload = self.decode_segment(PacketHeader, payload)
-            if len(packets) is not 1:
-                raise ValueError("Internal Error processing capture packet header")
-            packet = packets[0]
-
-            # read the packet payload
-
-            payloadBytes = record['cap-packet-length'] - packetHeaderBytes
-            packetPayload = self.__read(payloadBytes)
-
-            # read the packet footer
-            payload = self.__read(packetFooterBytes)
-            if len(payload) is not packetFooterBytes:
-                raise ValueError("Internal error reading capture packet footer")
-            footers, payload = self.decode_segment(PacketFooter, payload)
-            if len(footers) is not 1:
-                raise ValueError("Internal error processing capture packet footer")
-            footer = footers[0]
-            if footer['cap-packet-length-check'] != record['cap-packet-length']:
-                raise ValueError("CRC error processing capture packet")
-
-            # dispatch packet payload to next
-            context = dict()
-            self.__frame_count += 1
-            context['cap-frame-num'] = self.__frame_count
-            context.update(record)
-            context.update(packet)
-            context.update(footer)
-            self.dispatch_to_next(context, packetPayload)
-
-            # update stats
-            self.__frames += 1
-            if self.__startTime is None:
-                self.__startTime = context['cap-packet-timestamp']
-            self.__endTime = context['cap-packet-timestamp']
-
-            if self.__max_packet_count is not None:
-                if self.__frames >= self.__max_packet_count:
+        try:
+            while cont:
+                # read the record header
+                payload = self.__read(recordHeaderBytes)
+                if len(payload) is 0:
+                    # end of file
                     cont = False
+                    continue
+                records, payload = self.decode_segment(RecordHeader, payload)
+                if len(records) is not 1:
+                    raise ValueError("Internal error processing capture file record header")
+                record = records[0]
 
-            if self.__pbar is not None:
-                self.__pbar.update(self.__bytes)
+                # read the packet header
+                payload = self.__read(packetHeaderBytes)
+                packets, payload = self.decode_segment(PacketHeader, payload)
+                if len(packets) is not 1:
+                    raise ValueError("Internal Error processing capture packet header")
+                packet = packets[0]
+
+                # read the packet payload
+
+                payloadBytes = record['cap-packet-length'] - packetHeaderBytes
+                packetPayload = self.__read(payloadBytes)
+
+                # read the packet footer
+                payload = self.__read(packetFooterBytes)
+                if len(payload) is not packetFooterBytes:
+                    raise ValueError("Internal error reading capture packet footer")
+                footers, payload = self.decode_segment(PacketFooter, payload)
+                if len(footers) is not 1:
+                    raise ValueError("Internal error processing capture packet footer")
+                footer = footers[0]
+                if footer['cap-packet-length-check'] != record['cap-packet-length']:
+                    raise ValueError("CRC error processing capture packet")
+
+                # dispatch packet payload to next
+                context = dict()
+                self.__frame_count += 1
+                context['cap-frame-num'] = self.__frame_count
+                context.update(record)
+                context.update(packet)
+                context.update(footer)
+                self.dispatch_to_next(context, packetPayload)
+
+                # update stats
+                self.__frames += 1
+                if self.__startTime is None:
+                    self.__startTime = context['cap-packet-timestamp']
+                self.__endTime = context['cap-packet-timestamp']
+
+                if self.__max_packet_count is not None:
+                    if self.__frames >= self.__max_packet_count:
+                        cont = False
+
+                if self.__pbar is not None:
+                    self.__pbar.update(self.__bytes)
+
+        except ValueError as ex:
+            sys.stderr.write("Caught exception decoding SpryWare-format Capture file.  Error: '{0}'".format(ex.message))
+
+
 
 
     def summarize(self):
