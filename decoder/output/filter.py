@@ -29,10 +29,12 @@ class Decoder(Decoder):
                 pair = keyval.split('=')
                 self.__keyvals.append(pair)
         self.__allowed_modules = None
-        if 'modules' in opts:
-            self.__allowed_modules = opts['modules'].split(',')
-
-
+        if 'allowed-modules' in opts:
+            self.__allowed_modules = opts['allowed-modules'].split(',')
+        self.__excluded_modules = None
+        if 'excluded-modules' in opts:
+            self.__excluded_modules = opts['excluded-modules'].split(',')
+        self.__allow_special_keys = opts.get('allow-special-keys', True)
 
     def __init__(self, opts, next_decoder):
         super(Decoder, self).__init__('output/filter', opts, next_decoder)
@@ -91,12 +93,26 @@ class Decoder(Decoder):
                 context = filteredContext
             # filter in explicitly allowed modules
             if self.__allowed_modules is not None:
-                filteredContext = collections.OrderedDict()
+                filtered = collections.OrderedDict()
                 for key, value in context.iteritems():
-                    keymod = key.split('-')[0]
-                    if keymod in self.__allowed_modules:
-                        filteredContext.update({key: value})
-                context = filteredContext
+                    for allowed_key in self.__allowed_modules:
+                        if allowed_key in key:
+                            filtered[key] = value
+                context = filtered
+
+            # filter out explicitly excluded modules
+            if self.__excluded_modules is not None:
+                for key, value in context.iteritems():
+                    # see if this key is excluded
+                    for excluded_key in self.__excluded_modules:
+                        if excluded_key in key:
+                            # this key is excluded, so remove it from context
+                            del context[key]
+
+            # filter in special keys if allowed
+            if self.__allow_special_keys:
+                if cur_sequence is not None:
+                    context['sequence-number'] = cur_sequence
 
             if context:
                 self.dispatch_to_next(context, payload)
