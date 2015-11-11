@@ -1,42 +1,9 @@
-from decoder.decoder import Decoder
+from decoder.decoder import InputDecoder
 from decoder.input.capture.capmsg.segments import *
-from progressbar import *
 
-class Decoder(Decoder):
+class Decoder(InputDecoder):
     """ SpryWare Capture File Decoder
     """
-
-    def __parse_options(self, opts):
-        self.__cap_file = None
-        self.__mmapped_cap_file = None
-
-        # open the cap file
-        self.__fname = opts.get('filename', None)
-        if opts.get('compressed', False) == True:
-            import gzip
-            self.__cap_file = gzip.open(self.__fname, 'rb')
-        else:
-            self.__cap_file = open(opts.get ('filename', None), 'r')
-        self.__file_size = os.stat(self.__fname).st_size
-        # if mmapped mode enabled, get a file mapping
-        if opts.get('mapped-mode', False) is True:
-            import mmap
-            self.__mapped_cap_file = mmap.mmap(self.__cap_file.fileno(), 0, prot=mmap.PROT_READ)
-
-        self.__max_packet_count = opts.get('max-packets', None)
-        self.__frame_count = 0
-        self.__pbar = None
-        if opts.get('progress', False) is True:
-            self.__pbar_widgets = [self.__fname, Percentage(), ' ', FileTransferSpeed(), ' ', ETA()]
-            self.__pbar = ProgressBar(widgets=self.__pbar_widgets, maxval=self.__file_size)
-            self.__pbar.start()
-
-    def cap_file(self):
-        if self.__mmapped_cap_file is not None:
-            return self.__mmapped_cap_file
-        else:
-            return self.__cap_file
-
     def __init__(self, opts, next_decoder):
         super(Decoder, self).__init__('input/capture/cap', opts, next_decoder)
         self.__parse_options(opts)
@@ -46,6 +13,11 @@ class Decoder(Decoder):
         self.__startTime = None
         self.__endTime = None
 
+    def __parse_options(self, opts):
+        self.__verbose = opts.get('verbose', False)
+        self.__max_packet_count = opts.get('max-packets', None)
+        self.__frame_count = 0
+
     def on_message(self, inputContext, inPayload):
         """  Process spryware capture packet
 
@@ -54,15 +26,10 @@ class Decoder(Decoder):
         :param payload: Message payload
         """
 
-    def __read(self, bytes):
-        payload = self.cap_file().read(bytes)
-        self.__bytes += bytes
-        return payload
-
     def run(self):
         # decode the file header
         wireBytes = FileHeader.WireBytes()
-        payload = self.__read(wireBytes)
+        payload = self.read_from_input_file(wireBytes)
 
         headers, payload = self.decode_segment(FileHeader, payload)
         if len(headers) is not 1:
@@ -76,7 +43,7 @@ class Decoder(Decoder):
         sig = header['cap-file-signature']
         if sig != 'V2CAN':
             raise ValueError("Invalid cap file signature")
-        if self.verbose():
+        if self.verbose:
             print "{0} is a valid SpryWare-format capture file".format(self.__fname)
 
         # main loop
@@ -86,7 +53,7 @@ class Decoder(Decoder):
         cont = True
         while cont:
             # read the record header
-            payload = self.__read(recordHeaderBytes)
+            payload = self.read_from_input_file(recordHeaderBytes)
             if len(payload) is 0:
                 # end of file
                 cont = False
@@ -97,19 +64,18 @@ class Decoder(Decoder):
             record = records[0]
 
             # read the packet header
-            payload = self.__read(packetHeaderBytes)
+            payload = self.read_from_input_file(packetHeaderBytes)
             packets, payload = self.decode_segment(PacketHeader, payload)
             if len(packets) is not 1:
                 raise ValueError("Internal Error processing capture packet header")
             packet = packets[0]
 
             # read the packet payload
-
             payloadBytes = record['cap-packet-length'] - packetHeaderBytes
-            packetPayload = self.__read(payloadBytes)
+            packetPayload = self.read_from_input_file(payloadBytes)
 
             # read the packet footer
-            payload = self.__read(packetFooterBytes)
+            payload = self.read_from_input_file(packetFooterBytes)
             if len(payload) is not packetFooterBytes:
                 raise ValueError("Internal error reading capture packet footer")
             footers, payload = self.decode_segment(PacketFooter, payload)
@@ -138,16 +104,13 @@ class Decoder(Decoder):
                 if self.__frames >= self.__max_packet_count:
                     cont = False
 
-            if self.__pbar is not None:
-                self.__pbar.update(self.__bytes)
-
 
     def summarize(self):
         """ Provides summary statistics from this Decoder
         """
         return {
             'cap-frames': self.__frames,
-            'cap-bytes': self.__bytes,
+            'cap-bytes': super(Decoder,self).bytes_read,
             'cap-start-time': self.__startTime,
             'cap-end-time': self.__endTime,
             'cap-create-date': self.__cap_creation_date,

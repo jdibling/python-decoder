@@ -1,6 +1,6 @@
 from decoder.field import *
 from decoder.descriptor import Descriptor
-from decoder.decoder import Decoder, Verbosity
+from decoder.decoder import InputDecoder
 from struct import calcsize, unpack_from, pack
 import os
 import sys
@@ -25,7 +25,7 @@ class IpAddrField(WireField):
     def as_int(self):
         return self.__orig_data
 
-class Decoder (Decoder):
+class Decoder (InputDecoder):
     """ pcap decoder
 
     This decoder processes pcaps
@@ -34,7 +34,6 @@ class Decoder (Decoder):
 
     def __parse_options (self, opts):
         self.__file_size = os.stat(opts['filename']).st_size
-        self.pcap = self.open_file(opts['filename'])
         self.destAddrWhite = None
         if 'dest-addrs-allow' in opts:
             self.destAddrWhite = (opts['dest-addrs-allow']).split(",;")
@@ -47,28 +46,10 @@ class Decoder (Decoder):
         self.destPortBlack = None
         if 'dest-ports-disallow' in opts:
             self.destPortBlack = str(opts['dest-ports-disallow']).split(",;")
-        if 'progress' in opts:
-            from progressbar import *
-            self.__pbar_widgets = [self.pcap.name, Percentage(), ' ', FileTransferSpeed(), ' ', ETA()]
-            self.__pbar = ProgressBar(widgets=self.__pbar_widgets, maxval=self.__file_size)
-            self.__pbar.start()
-
-
-    def read(self, bytes):
-        payload = self.pcap.read(bytes)
-        if len(payload) != bytes:
-            raise EOFError()
-        self.__total_bytes += bytes
-        #DELETE ME!!! if self.__total_bytes == 1806500:
-        #    bk = True
-        return payload
-        
 
     def __init__ (self, opts, next_decoder):
-        super (Decoder, self).__init__ ('capture/pcapngmsg', opts, next_decoder)
-        self.__pbar = None
-        self.__pbar_widgets = None
-        self.__parse_options (opts)
+        super (Decoder, self).__init__ ('input/capture/pcap', opts, next_decoder)
+        self.__parse_options(opts)
         # init summary data
         self.__frame_count = 0
         self.__total_bytes = 0
@@ -260,7 +241,7 @@ class Decoder (Decoder):
     def __processGlobalHeader(self):
         # extract the global header from the file
         headerBytes = self.PcapDescriptor['GlobalHeader'].WireBytes()
-        headerPayload = self.read(headerBytes)
+        headerPayload = self.read_from_input_file(headerBytes)
         # get the magic number & determine endianness of the file
         magicNumberContexts, dummyPayload = self.decode_segment(self.PcapDescriptor['MagicNumber'], headerPayload, peek=True)
         magicNumber = magicNumberContexts[0]['pcap-magic-number']
@@ -298,7 +279,7 @@ class Decoder (Decoder):
         try:
             # load & process the file header
             self.__processGlobalHeader()
-            if self.verbose():
+            if self.verbose:
                 if self.__nanosecond is True:
                     resol = "Nanosecond"
                 else:
@@ -313,7 +294,7 @@ class Decoder (Decoder):
                 netDesc.SetBigEndian()
             while True:
                 # rad & process the packet header
-                packetHeaderPayload = self.read(packetHeaderBytes)
+                packetHeaderPayload = self.read_from_input_file(packetHeaderBytes)
                 if len(packetHeaderPayload) < packetHeaderDesc.WireBytes():
                     # end of file
                     break
@@ -338,7 +319,7 @@ class Decoder (Decoder):
                 packetHeader['pcap-recv-time-sec'] = '{0}.{1:09d}'.format(secs, nanos)
 
                  # read the packet payload frrom the file & send to next link in chain
-                packetPayload = self.read(packetBytes)
+                packetPayload = self.read_from_input_file(packetBytes)
                 self.on_message(packetHeader, packetPayload)
         except EOFError as ex:
             return
