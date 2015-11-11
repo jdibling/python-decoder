@@ -48,7 +48,7 @@ class Decoder (Decoder):
         if 'dest-ports-disallow' in opts:
             self.destPortBlack = str(opts['dest-ports-disallow']).split(",;")
         if 'progress' in opts:
-            from progressbar import *
+            from progressbar import Percentage, FileTransferSpeed, ETA, ProgressBar
             self.__pbar_widgets = [self.pcap.name, Percentage(), ' ', FileTransferSpeed(), ' ', ETA()]
             self.__pbar = ProgressBar(widgets=self.__pbar_widgets, maxval=self.__file_size)
             self.__pbar.start()
