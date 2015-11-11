@@ -5,13 +5,14 @@ from decoder.bats.mpitchmsg.constants import *
 
 class Decoder(Decoder):
     def __init__(self, opts, next_decoder):
-        super(Decoder, self).__init__('ndq/itchp50', opts, next_decoder)
+        super(Decoder, self).__init__('bats/mpitch', opts, next_decoder)
         self.__parse_options(opts)
         self.__unhandledMessages = dict()
         self.__translation = dict()
         self.__frameCount = 0
         self.__msgCount = dict()
         self.__byteCount = 0
+        self.__order_book = dict()
 
     def __parse_options(self, opts):
         pass
@@ -64,6 +65,44 @@ class Decoder(Decoder):
 
                 message['mpitch-message-type'] = typeName
                 context.update(message)
+
+                # special handling for add order messages -- update a local order book
+                if msgType in AddOrderMsgTypes:
+                    order_id = context['mpitch-order-id']
+                    order_symbol = context['mpitch-symbol']
+                    order_qty = context['mpitch-quantity']
+                    order_price = context['mpitch-price']
+                    order_side = context['mpitch-side']
+
+                    if order_id in self.__order_book:
+                        bk = True
+
+                    self.__order_book[order_id] = {
+                        'order-symbol': order_symbol,
+                        'order-qty': order_qty,
+                        'order-price': order_price,
+                        'order-side': order_side
+                    }
+
+                # special handling for order executed message
+                if msgType == MsgTypeNames['OrderExecutedAtPriceSize']:
+                    order_id = context['mpitch-order-id']
+                    exec_qty = context['mpitch-quantity']
+                    leaves_qty = context['mpitch-remaining-quantity']
+                    exec_price = context['mpitch-price']
+                    prev_order = self.__order_book.get(order_id, None)
+                    if prev_order is not None:
+                        for k, v in prev_order.iteritems():
+                            key = 'mpitch-orig-{0}'.format(k)
+                            context[key] = v
+                        prev_qty = prev_order['order-qty']
+                        expected_leaves = prev_qty - exec_qty
+                        context['mpitch-expected-remaining-quantity'] = expected_leaves
+                        if leaves_qty > expected_leaves:
+                            context['mpitch-possible-iceberg'] = True
+
+                        if leaves_qty == 0:
+                            del(self.__order_book[order_id])
 
             # send to next
             context.update(inputContext)

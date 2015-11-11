@@ -24,3 +24,12 @@ MsgTypes = {
     0x97: (UnitClear, 'UnitClear'),
     0x98: (RetailPriceImprovement, 'RetailPriceImprovement'),
 }
+
+MsgTypeNames = { v[1]: k for k,v in MsgTypes.iteritems()}
+
+AddOrderMsgTypes = [
+    MsgTypeNames['AddOrderShort'],
+    MsgTypeNames['AddOrderLong'],
+    MsgTypeNames['AddOrderExpanded']
+]
+
