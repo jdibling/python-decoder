@@ -31,6 +31,17 @@ class Decoder(Decoder):
         self.__allowed_modules = None
         if 'modules' in opts:
             self.__allowed_modules = opts['modules'].split(',')
+        self.__key_rx = None
+        if 'key-grep' in opts:
+          import re
+          self.__key_rx = re.compile(opts['key-grep'])
+          if self.__key_rx is None:
+            raise ValueError("Unable to compile regex")
+        self.__val_rx = None
+        if 'val-grep' in opts:
+          import re
+          self.__val_rx = re.compile(opts['val-grep'])
+          
 
 
 
@@ -79,6 +90,15 @@ class Decoder(Decoder):
             for key in self.__required_keys:
                 if key.strip() not in context:
                     allow = False
+
+        # see if we're grepping keys
+        if self.__key_rx is not None:
+          for key in context:
+            if self.__key_rx.search(key) is not None:
+              found_key = True
+              break
+          if not found_key:
+            allow = False
 
         if allow:
             self.__allowed_messages += 1
