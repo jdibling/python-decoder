@@ -107,7 +107,7 @@ class Decoder(decoder.decoder.Decoder):
             if self.out_file is not None and len(line) > 0:
                 self.out_file.write('{0}\n'.format(line))
                 self.out_file.flush()
-                if self.verbosity() >= Verbosity.Verbose:
+                if self.verbosity >= Verbosity.Verbose:
                     print line
             else:
                 print line

@@ -128,7 +128,7 @@ class Decoder(Decoder):
                 no_present = True
 
             # see if we should send this message down the chain
-            if segment.verbosity() <= self.verbosity():
+            if segment.verbosity() <= self.verbosity:
                 # build context
                 context.update(packet)
                 context.update(message)
