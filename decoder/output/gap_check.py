@@ -1,6 +1,7 @@
 import os.path
 from sys import exit
 import decimal
+import datetime
 
 import decoder.decoder
 
@@ -75,21 +76,34 @@ class Decoder(decoder.decoder.Decoder):
 
         # If there is a gap, report how many packets were lost
         if (expected_seq_num is not None) and (expected_seq_num != msg_seq_num):
+
             gapped = msg_seq_num - expected_seq_num
             self.ttl_gapped += gapped
 
-            print '*SEQUENCE GAP* lost {0} packets starting at {1}'.format(
-                gapped,
-                expected_seq_num)
+            first_drop = expected_seq_num
+            last_drop = expected_seq_num + gapped - 1
+            drop_time = context.get('packet-recv-time-gmt', None)
+            if drop_time is not None:
+                drop_time = datetime.datetime.fromtimestamp(drop_time)
+
+            msg = ''
+            if gapped != 1:
+                msg = '*SEQUENCE GAP*\t lost {0} packets [{1}-{2}]'.format(gapped, first_drop, last_drop)
+            else:
+                msg = '*SEQUENCE GAP*\t lost {0} packets [{1}]'.format(gapped, first_drop)
+            if drop_time is not None:
+                msg = '{0} @ {1}'.format(msg, drop_time)
+
+            print msg, '\n'
 
             # if we're writing to a log file...
             if self.gaps_file is not None:
                 for gap in range(expected_seq_num, msg_seq_num):
-                    if self.gaps_file is None:
-                        print '*GAP*\t{0}: {1}'.format(gap, str(cur_time))
+                    if drop_time is None:
+                        self.gaps_file.write('sequence-number={0}\n'.format(gap))
                     else:
-                        self.gaps_file.write('sequence-number={0},time={1}\n'.format(gap, str(cur_time)))
-                        self.gaps_file.flush()
+                        self.gaps_file.write('sequence-number={0},time={1}\n'.format(gap, str(drop_time)))
+                    self.gaps_file.flush()
 
         # Update summary stats
         self.ttl_processed += 1
