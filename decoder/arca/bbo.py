@@ -1,11 +1,10 @@
 import datetime
+import sys
 
 from decoder.decoder import Decoder
 
 from decoder.arca.bbomsg.constants import BboMsgTypeId, BboMsgType
 from decoder.arca.bbomsg.segments import BboSegment
-from decoder.arca.xdpmsg.convert import XdpTimeStamp
-
 
 class Decoder(Decoder):
 
@@ -22,6 +21,7 @@ class Decoder(Decoder):
         self.__frameCount = 0
         self.__msgCount = 0
         self.__byteCount = 0
+        self.__next_expected_seq_num = None
 
     def on_message(self, context, payload):
         """  Process XDP/BBO Message
@@ -34,6 +34,26 @@ class Decoder(Decoder):
         if len(packets) is not 1:
             raise ValueError("Internal error parsing XdpBboPacketHeader")
         packet = packets[0]
+
+        # get the current seqnum & detect gaps
+        if self.__next_expected_seq_num is not None:
+            cur_seq_num = packet['xdp-seq-num']
+            if cur_seq_num != self.__next_expected_seq_num:
+                # there was a gap
+                # we will wipe out the time reference map
+                # so that we don't produce any erroneous source-time's
+                gapped = cur_seq_num - self.__next_expected_seq_num
+                cur_packet_time = context['packet-recv-time-gmt']
+
+                sys.stderr.write("\n{0} packets lost @ {1}:".format(gapped, str(datetime.datetime.fromtimestamp(cur_packet_time))))
+                if gapped != 1:
+                    sys.stderr.write('[{0}]'.format(self.__next_expected_seq_num))
+                else:
+                    sys.stderr.write('[{0}-{1}]'.format(self.__next_expected_seq_num, self.__next_expected_seq_num + gapped))
+                sys.stderr.write(' -- Clearing SourceTime Map\n')
+                sys.stderr.flush()
+
+                self.__timeRefIndex.clear()
 
         msgCount = packet['xdp-number-msgs']
 
@@ -75,9 +95,6 @@ class Decoder(Decoder):
                 raise ValueError("Internal error parsing XdpBboMessage type {0}: {1}".format(xdpMsgType, BboMsgType[xdpMsgType]))
             message = messages[0]
             message['xdp-msg-type-name'] = BboMsgType[xdpMsgType]
-
-            if message['xdp-msg-type-name'] == 'BboQuote':
-                bk = True
 
             symbolIdx = message.get('xdp-symbol-index', None)
 
@@ -124,6 +141,7 @@ class Decoder(Decoder):
             if sequence is not None:
                 sequence_number = int(sequence) + msgIdx
                 context.update({'sequence-number': sequence_number})
+                self.__next_expected_seq_num = sequence_number + 1
             else:
                 no_present = True
 

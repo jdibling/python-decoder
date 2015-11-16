@@ -41,7 +41,7 @@ class Decoder(Decoder):
         if 'val-grep' in opts:
           import re
           self.__val_rx = re.compile(opts['val-grep'])
-          
+
 
 
 

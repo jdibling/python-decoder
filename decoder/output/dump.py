@@ -7,7 +7,7 @@ from decoder.exceptions import LinkInitError
 
 class Decoder(decoder.decoder.Decoder):
     def __init__(self, opts, next_decoder):
-        super(Decoder, self).__init__('dump', opts, next_decoder)
+        super(Decoder, self).__init__('output/dump', opts, next_decoder)
         self.out_file = None
         self.__parse_options(opts)
         self.msg_type_counts = {}
