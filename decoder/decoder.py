@@ -39,6 +39,7 @@ class Decoder(object):
         self.__parse_basic_module_options(opts)
         self.kind = kind
         self.next = next_decoder
+        self._last_decoded_recv_time = None
 
     def __parse_basic_module_options (self, opts):
         self.__verbosity = Verbosity.Normal
@@ -128,6 +129,8 @@ class Decoder(object):
             self.next.stop()
 
     def dispatch_to_next(self, context, payload):
+        self._last_decoded_recv_time = context.get('packet-recv-time-gmt', None)
+
         if self.next is not None:
             self.next.on_message(context, payload)
 
@@ -182,7 +185,8 @@ class InputDecoder(Decoder):
 
         # start the progbar
         if opts.get('progress', False) is True:
-            from progressbar import Percentage, FileTransferSpeed, ETA, ProgressBar
+            from thirdparty.progressbar23.progressbar import Percentage, FileTransferSpeed, ETA, ProgressBar
+#            from progressbar import Percentage, FileTransferSpeed, ETA, ProgressBar
             self.__pbar_widgets = [self.file_name, Percentage(), ' ', FileTransferSpeed(), ' ', ETA()]
             self.__pbar = ProgressBar(widgets=self.__pbar_widgets, maxval=self.__raw_file_size)
             self.__pbar.start()
