@@ -3,38 +3,38 @@ from decoder.input.capture.pcapngmsg.field import *
 
 
 BlockHeader = Descriptor([
-    WireField('pcapngmsg-block-type', 'I', type=int),
-    WireField('pcapngmsg-block-total-length', 'I', type=int)
+    WireField('pcap-block-type', 'I', type=int),
+    WireField('pcap-block-total-length', 'I', type=int)
 ])
 
 BlockFooter = Descriptor([
-    WireField('pcapngmsg-block-total-length-check', 'I', type=int)
+    WireField('pcap-block-total-length-check', 'I', type=int)
 ])
 
 SectionHeader = Descriptor([
-    WireField('pcapngmsg-magic-number', 'I', type=int),
-    WireField('pcapngmsg-major-version', 'H', type=int),
-    WireField('pcapngmsg-minor-version', 'H', type=int),
-    WireField('pcapngmsg-section-length', 'Q', type=int)
+    WireField('pcap-magic-number', 'I', type=int),
+    WireField('pcap-major-version', 'H', type=int),
+    WireField('pcap-minor-version', 'H', type=int),
+    WireField('pcap-section-length', 'Q', type=int)
 ])
 
 InterfaceDefinition = Descriptor([
-    WireField('pcapngmsg-link-type', 'H', type=int),
+    WireField('pcap-link-type', 'H', type=int),
     WireField('resv', 'H', hidden=True),
-    WireField('pcapngmsg-snap-len', 'I', type=int)
+    WireField('pcap-snap-len', 'I', type=int)
 ])
 
 EnhancedPacket = Descriptor([
-    WireField('pcapngmsg-ifc-id', 'I', type=int),
-    WireField('pcapngmsg-timestamp-high', 'I', type=int),
-    WireField('pcapngmsg-timestamp-low', 'I', type=int),
-    WireField('pcapngmsg-captured-length', 'I', type=int),
-    WireField('pcapngmsg-packet-length', 'I', type=int)
+    WireField('pcap-ifc-id', 'I', type=int),
+    WireField('pcap-timestamp-high', 'I', type=int),
+    WireField('pcap-timestamp-low', 'I', type=int),
+    WireField('pcap-captured-length', 'I', type=int),
+    WireField('pcap-packet-length', 'I', type=int)
 ])
 
 OptionHeader = Descriptor([
-    WireField('pcapngmsg-option-code', 'H', type=int),
-    WireField('pcapngmsg-option-length', 'H', type=int)
+    WireField('pcap-option-code', 'H', type=int),
+    WireField('pcap-option-length', 'H', type=int)
 ])
 
 TsResolOption = Descriptor([
@@ -42,33 +42,33 @@ TsResolOption = Descriptor([
 ])
 
 EthernetHeader = Descriptor([
-    WireField('pcapngmsg-dest-mac', '6s', type=HexArray),
-    WireField('pcapngmsg-source-mac', '6s', type=HexArray),
-    WireField('pcapngmsg-eth-protocol', 'H', type=int)
+    WireField('pcap-dest-mac', '6s', type=HexArray),
+    WireField('pcap-source-mac', '6s', type=HexArray),
+    WireField('pcap-eth-protocol', 'H', type=int)
 ], endian='Big')
 
 VlanTag = Descriptor([
-    WireField('pcapngmsg-vlan-id', '2s', type=TrimmedString),
-    WireField('pcapngmsg-eth-protocol', 'H', type=int) # this will overwrite the pcapngmsg-eth-protocol extracted in EtherNetHeader
+    WireField('pcap-vlan-id', '2s', type=TrimmedString),
+    WireField('pcap-eth-protocol', 'H', type=int) # this will overwrite the pcap-eth-protocol extracted in EtherNetHeader
 ], endian='Big')
 
 IpHeader = Descriptor([
-    WireField('pcapngmsg-ip-version', 'B', type=int),
-    WireField('pcapngmsg-ip-services', 'B', type=int),
-    WireField('pcapngmsg-ip-total-length', 'H', type=int),
-    WireField('pcapngmsg-ip-identification', 'H', type=int),
-    WireField('pcapngmsg-ip-flags', 'B', type=int),
-    WireField('pcapngmsg-ip-fragment-offset', 'B', type=int),
-    WireField('pcapngmsg-ip-ttl', 'B', type=int),
-    WireField('pcapngmsg-ip-protocol', 'B', type=int),
-    WireField('pcapngmsg-ip-header-checksum', 'H', type=int),
-    WireField('pcapngmsg-ip-source-addr', 'L', type=IpAddrField()),
+    WireField('pcap-ip-version', 'B', type=int),
+    WireField('pcap-ip-services', 'B', type=int),
+    WireField('pcap-ip-total-length', 'H', type=int),
+    WireField('pcap-ip-identification', 'H', type=int),
+    WireField('pcap-ip-flags', 'B', type=int),
+    WireField('pcap-ip-fragment-offset', 'B', type=int),
+    WireField('pcap-ip-ttl', 'B', type=int),
+    WireField('pcap-ip-protocol', 'B', type=int),
+    WireField('pcap-ip-header-checksum', 'H', type=int),
+    WireField('pcap-ip-source-addr', 'L', type=IpAddrField()),
     WireField('pcap-ip-dest-addr', 'L', type=IpAddrField())
 ], endian='Big')
 
 UdpHeader = Descriptor([
-    WireField('pcapngmsg-udp-source-port', 'H', type=int),
+    WireField('pcap-udp-source-port', 'H', type=int),
     WireField('pcap-udp-dest-port', 'H', type=int),
-    WireField('pcapngmsg-udp-length', 'H', type=int),
-    WireField('pcapngmsg-udp-checksum', 'H', type=int)
+    WireField('pcap-udp-length', 'H', type=int),
+    WireField('pcap-udp-checksum', 'H', type=int)
 ], endian='Big')
