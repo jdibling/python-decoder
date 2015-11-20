@@ -88,7 +88,8 @@ CdfFields = {
     53 : 'SettlementTerms',
     584 : 'TradingTierId',
     520 : 'ShortExemptEligible',
-    64 : 'Volume'
+    64 : 'Volume',
+    513: 'CdfId'
 }
 CdfSoh = chr(0x01)
 CdfBusinessContentChar = chr(0x1c)
