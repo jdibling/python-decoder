@@ -425,7 +425,7 @@ class Decoder (Decoder):
         if messageDesc is None:
             # unhandled message -- report it and skip the payload
             self.__unhandled_messages[messageTypeHex] = self.__unhandled_messages.get(messageTypeHex, 0) + 1
-            if self.verbose():
+            if self.verbose:
                 sys.stderr.write("Unhandled message type: {0}\n".format(messageTypeHex))
             # skip the message body in the payload
             bytes_to_skip = messageHeader['pico-msg-body-length']
