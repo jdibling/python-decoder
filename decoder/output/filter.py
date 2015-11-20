@@ -92,6 +92,7 @@ class Decoder(Decoder):
                     allow = False
 
         # see if we're grepping keys
+        found_key = False
         if self.__key_rx is not None:
           for key in context:
             if self.__key_rx.search(key) is not None:
