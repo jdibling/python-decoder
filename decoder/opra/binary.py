@@ -1,6 +1,6 @@
-from base.decoder import *
-from decoder.opra.details import segments
-from decoder.opra.details import constants
+from decoder.module import *
+from decoder.opra.binarymsg import segments
+from decoder.opra.binarymsg import constants
 
 class Decoder(BasicModule):
     def __init__(self, opts, next_decoder):
@@ -21,17 +21,18 @@ class Decoder(BasicModule):
             if len(blocks) != 1:
                 raise ValueError("Malformed Opra Binary BlockHeader")
             block = blocks[0]
+            msg_version = block['opra-block-version']
 
             # decode the appropriate message header
-            msgHeaders, payload = self.decode_segment(constants.MsgHeadersByVersion[block['opra-block-ver']], payload)
-            if len(msgHeaders) != 1:
+            headers, payload = self.decode_segment(segments.MessageHeader[msg_version], payload)
+            if len(headers) != 1:
                 raise ValueError("Malformed Opra Binary MessageHeader v {0}".format(block['opra-block-ver0']))
-            msgHeader = msgHeaders[0]
+            header = headers[0]
 
+            msg_cat = header['opra-msg-cat']
+            msg_type = header['opra-msg-type']
 
             # send to next
-            if block['sequence-number'] == 36399374:
-                bk = True
             context = {}
             context.update(block)
             context.update(msgHeader)
