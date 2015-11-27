@@ -1,12 +1,12 @@
 import datetime
 
-from decoder.decoder import Decoder
+from decoder.module import *
 
 from decoder.arca.integratedmsg.constants import *
 from decoder.arca.integratedmsg.segments import *
 
 
-class Decoder(Decoder):
+class Decoder(BasicModule):
 
     def __parseOptions (self, opts):
         pass

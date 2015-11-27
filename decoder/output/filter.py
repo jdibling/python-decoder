@@ -3,10 +3,10 @@ import collections
 from decoder.field import BasicField, WireField, ComputedField, RepeatingGroup, LookupField, TrimmedString
 from decoder.descriptor import Descriptor
 
-from decoder.decoder import Decoder, Verbosity
+from decoder.module import *
 
 
-class Decoder(Decoder):
+class Decoder(BasicModule):
     """ filter module
 
     This module filters output streams

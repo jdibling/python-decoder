@@ -1,4 +1,4 @@
-from decoder.decoder import InputDecoder
+from decoder.module import InputDecoder
 from decoder.input.capture.pcapngmsg.constants import *
 from decoder.exceptions import *
 import gzip

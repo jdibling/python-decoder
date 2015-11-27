@@ -1,6 +1,6 @@
 from decoder.field import *
 from decoder.descriptor import Descriptor
-from decoder.decoder import InputDecoder
+from decoder.module import InputDecoder
 from struct import calcsize, unpack_from, pack
 import os
 import sys

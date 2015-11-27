@@ -6,7 +6,7 @@ import decimal
 from decoder.field import BasicField, WireField, ComputedField, RepeatingGroup, TrimmedString
 from decoder.descriptor import Descriptor
 
-from decoder.decoder import Decoder, Verbosity
+from decoder.module import *
 
 
 def toHex (x):
@@ -56,7 +56,7 @@ NativeTypes = {
 def GetNativeType(fieldId):
     return NativeTypes[fieldId]
 
-class Decoder(Decoder):
+class Decoder(BasicModule):
     """ MDPacket processor
 
     """

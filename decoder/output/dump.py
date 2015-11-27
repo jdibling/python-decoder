@@ -1,11 +1,8 @@
 import os.path
 
-import decoder.decoder
-from decoder.decoder import Verbosity
-from decoder.exceptions import LinkInitError
+from decoder.module import *
 
-
-class Decoder(decoder.decoder.Decoder):
+class Decoder(BasicModule):
     def __init__(self, opts, next_decoder):
         super(Decoder, self).__init__('output/dump', opts, next_decoder)
         self.out_file = None

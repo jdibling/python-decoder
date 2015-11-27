@@ -1,10 +1,9 @@
 from __future__ import absolute_import
 
 import os.path
-import decoder.decoder
 import datetime
 import decoder.types
-from decoder.decoder import Verbosity
+from decoder.module import *
 from decoder.exceptions import LinkInitError
 import json
 import sys
@@ -30,7 +29,7 @@ def finalize_file(file):
     file.close()
     mark_file_done(name)
 
-class Decoder(decoder.decoder.Decoder):
+class Decoder(BasicModule):
     def __init__(self, opts, next_decoder):
         print "json.dump(1)"
         super(Decoder, self).__init__('json', opts, next_decoder)

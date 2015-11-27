@@ -1,13 +1,13 @@
 from decoder.field import *
 from decoder.descriptor import Descriptor
 
-from decoder.decoder import Decoder, Verbosity
+from decoder.module import *
 
 from decoder.spry.seqfwd_cppmsg.constants import *
 
 
 
-class Decoder (Decoder):
+class Decoder(BasicModule):
     """ SeqFwdCpp decoder
 
     This decoder processes SeqFwdCpp

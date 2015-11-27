@@ -1,5 +1,5 @@
 from struct import calcsize, unpack_from
-from .decoder import Verbosity
+from .module import *
 from .types import *
 
 

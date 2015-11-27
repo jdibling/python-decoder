@@ -1,9 +1,9 @@
-from decoder.decoder import Decoder
+from decoder.module import *
 from decoder.ndq.mold.segments import *
 from decoder.ndq.itch.segments import *
 from decoder.ndq.itch.constants import *
 
-class Decoder(Decoder):
+class Decoder(BasicModule):
     def __init__(self, opts, next_decoder):
         super(Decoder, self).__init__('ndq/itchp50', opts, next_decoder)
         self.__parse_options(opts)

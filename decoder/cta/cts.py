@@ -1,14 +1,14 @@
 from decoder.field import BasicField, WireField, ComputedField, RepeatingGroup, LookupField, TrimmedString
 from decoder.descriptor import Descriptor
 
-from decoder.decoder import Decoder, Verbosity
+from decoder.module import *
 
 from decoder.cta.constants import  InstrumentType, CancelErrorAction
 from decoder.cta.types import TimeStamp, DecDiv, PriceDenominator
 from decoder.cta.fields import FreeFormTextField
 
 
-class Decoder(Decoder):
+class Decoder(BasicModule):
     """ cqs Decoder
 
     This decoder processes cqs packets.

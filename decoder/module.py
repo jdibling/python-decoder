@@ -3,7 +3,7 @@ from .verbosity import Verbosity
 import gzip
 
 
-class Decoder(object):
+class BasicModule(object):
     """  Decoder base class
 
         In order to implement a new Decoder class,
@@ -134,7 +134,7 @@ class Decoder(object):
         if self.next is not None:
             self.next.on_message(context, payload)
 
-class InputDecoder(Decoder):
+class InputDecoder(BasicModule):
     def __init__(self, kind, opts, next_decoder):
         super(InputDecoder, self).__init__(kind, opts, next_decoder)
         self.__parse_input_module_options(opts)

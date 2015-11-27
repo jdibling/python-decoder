@@ -1,8 +1,6 @@
 from decoder.field import *
-from decoder.descriptor import Descriptor
-
-from decoder.decoder import Decoder, Verbosity
-
+from decoder.descriptor import *
+from decoder.module import *
 from decoder.phx.nextgenmsg.field import *
 
 import sys
@@ -59,7 +57,7 @@ AppendageTypeIndex = {
 AppendageNameIndex = dict((v, k) for k, v in AppendageTypeIndex.iteritems())
 
 
-class Decoder (Decoder):
+class Decoder(BasicModule):
     """ SeqFwdCpp decoder
 
     This decoder processes SeqFwdCpp

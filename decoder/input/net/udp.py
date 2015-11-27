@@ -1,9 +1,9 @@
-from decoder.decoder import Decoder
+from decoder.module import *
 
 import socket
 from struct import pack
 
-class Decoder(Decoder):
+class Decoder(BasicModule):
     def __init__(self, opts, next_decoder):
         super(Decoder, self).__init__('input/capture/pcapngmsg', opts, next_decoder)
         self.__parse_options(opts)

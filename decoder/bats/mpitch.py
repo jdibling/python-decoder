@@ -1,9 +1,9 @@
-from decoder.decoder import Decoder
+from decoder.module import *
 from decoder.bats.mpitchmsg.segments import *
 from decoder.bats.mpitchmsg.constants import *
 
 
-class Decoder(Decoder):
+class Decoder(BasicModule):
     def __init__(self, opts, next_decoder):
         super(Decoder, self).__init__('bats/mpitch', opts, next_decoder)
         self.__parse_options(opts)

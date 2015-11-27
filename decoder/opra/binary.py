@@ -1,8 +1,8 @@
-from base.decoder import Decoder
+from base.decoder import *
 from decoder.opra.details import segments
 from decoder.opra.details import constants
 
-class Decoder(Decoder):
+class Decoder(BasicModule):
     def __init__(self, opts, next_decoder):
         super(Decoder, self).__init__('opra/binary', opts, next_decoder)
         self.__parse_options(opts)

@@ -1,6 +1,6 @@
 from decoder.field import *
-from decoder.descriptor import Descriptor
-from decoder.decoder import Verbosity
+from decoder.descriptor import *
+from decoder.module import *
 
 from decoder.arca.xdpmsg.constants import XdpMsgTypeId, DeliveryFlag, MarketId
 from decoder.arca.xdpmsg.convert import XdpTimeStamp

@@ -1,12 +1,12 @@
 import time
-from decoder.decoder import Decoder
+from decoder.module import *
 from decoder.ice.icemsg.segments import  *
 from decoder.ice.icemsg.constants import *
 import decoder.ice.util as ice_util
 import decoder.util as decoder_util
 
 
-class Decoder(Decoder):
+class Decoder(BasicModule):
     """ SpryWare Capture File Decoder
     """
 

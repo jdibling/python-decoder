@@ -1,10 +1,10 @@
-from decoder.decoder import Decoder
+from decoder.module import *
 from decoder.tmx.cdfmsg.segments import *
 from decoder.tmx.cdfmsg.constants import *
 from collections import OrderedDict
 import re
 
-class Decoder(Decoder):
+class Decoder(BasicModule):
     def __init__(self, opts, next_decoder):
         super(Decoder, self).__init__('tmx/cdf', opts, next_decoder)
         self.__parse_options(opts)

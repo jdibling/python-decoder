@@ -1,4 +1,4 @@
-from decoder.decoder import InputDecoder
+from decoder.module import InputDecoder
 from decoder.input.capture.capmsg.segments import *
 
 class Decoder(InputDecoder):

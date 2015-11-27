@@ -3,10 +3,10 @@ from sys import exit
 import decimal
 import datetime
 
-import decoder.decoder
+from import decoder.module import *
 
 
-class Decoder(decoder.decoder.Decoder):
+class Decoder(BasicModule):
     """  gap-check meta decoder
 
             gap-check is a meta-decoder that finds sequence gaps

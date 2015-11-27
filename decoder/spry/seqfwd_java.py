@@ -1,10 +1,10 @@
 from decoder.field import BasicField, WireField, ComputedField, RepeatingGroup, TrimmedString, HexArray
 from decoder.descriptor import Descriptor
 
-from decoder.decoder import Decoder, Verbosity
+from decoder.module import *
 
 
-class Decoder (Decoder):
+class Decoder(BasicModule):
     """ SeqFwdCpp decoder
 
     This decoder processes SeqFwdCpp

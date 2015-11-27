@@ -1,12 +1,12 @@
 import datetime
 import sys
 
-from decoder.decoder import Decoder
+from decoder.module import Decoder
 
 from decoder.arca.bbomsg.constants import BboMsgTypeId, BboMsgType
 from decoder.arca.bbomsg.segments import BboSegment
 
-class Decoder(Decoder):
+class Decoder(BasicModule):
 
     def __parseOptions (self, opts):
         pass
