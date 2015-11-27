@@ -29,12 +29,21 @@ class Decoder(Decoder):
                 pair = keyval.split('=')
                 self.__keyvals.append(pair)
         self.__allowed_modules = None
-        if 'allowed-modules' in opts:
-            self.__allowed_modules = opts['allowed-modules'].split(',')
-        self.__excluded_modules = None
-        if 'excluded-modules' in opts:
-            self.__excluded_modules = opts['excluded-modules'].split(',')
-        self.__allow_special_keys = opts.get('allow-special-keys', True)
+        if 'modules' in opts:
+            self.__allowed_modules = opts['modules'].split(',')
+        self.__key_rx = None
+        if 'key-grep' in opts:
+          import re
+          self.__key_rx = re.compile(opts['key-grep'])
+          if self.__key_rx is None:
+            raise ValueError("Unable to compile regex")
+        self.__val_rx = None
+        if 'val-grep' in opts:
+          import re
+          self.__val_rx = re.compile(opts['val-grep'])
+
+
+
 
     def __init__(self, opts, next_decoder):
         super(Decoder, self).__init__('output/filter', opts, next_decoder)
@@ -82,6 +91,16 @@ class Decoder(Decoder):
                 if key.strip() not in context:
                     allow = False
 
+        # see if we're grepping keys
+        found_key = False
+        if self.__key_rx is not None:
+          for key in context:
+            if self.__key_rx.search(key) is not None:
+              found_key = True
+              break
+          if not found_key:
+            allow = False
+
         if allow:
             self.__allowed_messages += 1
             # filter in only allowed-keys, if specified
@@ -93,26 +112,12 @@ class Decoder(Decoder):
                 context = filteredContext
             # filter in explicitly allowed modules
             if self.__allowed_modules is not None:
-                filtered = collections.OrderedDict()
+                filteredContext = collections.OrderedDict()
                 for key, value in context.iteritems():
-                    for allowed_key in self.__allowed_modules:
-                        if allowed_key in key:
-                            filtered[key] = value
-                context = filtered
-
-            # filter out explicitly excluded modules
-            if self.__excluded_modules is not None:
-                for key, value in context.iteritems():
-                    # see if this key is excluded
-                    for excluded_key in self.__excluded_modules:
-                        if excluded_key in key:
-                            # this key is excluded, so remove it from context
-                            del context[key]
-
-            # filter in special keys if allowed
-            if self.__allow_special_keys:
-                if cur_sequence is not None:
-                    context['sequence-number'] = cur_sequence
+                    keymod = key.split('-')[0]
+                    if keymod in self.__allowed_modules:
+                        filteredContext.update({key: value})
+                context = filteredContext
 
             if context:
                 self.dispatch_to_next(context, payload)

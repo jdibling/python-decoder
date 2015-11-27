@@ -35,7 +35,13 @@ class Decoder(object):
     def toCHex (self, x):
         return ", ".join ([hex (ord (c)) for c in x])
 
-    def __parse_basic_options (self, opts):
+    def __init__(self, kind, opts, next_decoder):
+        self.__parse_basic_module_options(opts)
+        self.kind = kind
+        self.next = next_decoder
+        self._last_decoded_recv_time = None
+
+    def __parse_basic_module_options (self, opts):
         self.__verbosity = Verbosity.Normal
         if 'verbose' in opts:
             self.__verbosity = True if opts.get ('verbose', False) == True  else False
@@ -47,30 +53,14 @@ class Decoder(object):
             else:
                 self.__verbosity = Verbosity.Names[opts['verbosity'].lower()]
         self.__show_payloads = opts.get ('show-payloads', False)
-        self.__compression_format = opts.get('compression', None)
 
-    def __init__(self, kind, opts, next_decoder):
-        self.__parse_basic_options(opts)
-        self.kind = kind
-        self.next = next_decoder
-
+    @property
     def verbosity(self):
         return self.__verbosity
+    @property
     def verbose(self):
-        return self.verbosity() == Verbosity.Verbose
-    def compression(self):
-        if self.__compression_format is None:
-            return None
-        return self.__compression_format.lower()
-
-    def open_file(self, fileName):
-        # open the file accounting for whatever compression
-        return {
-            None: open(fileName, 'rb'),
-            'gzip':  gzip.open(fileName, 'rb')
-        }[self.compression()]
-
-
+        return self.verbosity == Verbosity.Verbose
+    @property
     def show_payloads(self):
         return self.__show_payloads
 
@@ -139,5 +129,86 @@ class Decoder(object):
             self.next.stop()
 
     def dispatch_to_next(self, context, payload):
+        self._last_decoded_recv_time = context.get('packet-recv-time-gmt', None)
+
         if self.next is not None:
             self.next.on_message(context, payload)
+
+class InputDecoder(Decoder):
+    def __init__(self, kind, opts, next_decoder):
+        super(InputDecoder, self).__init__(kind, opts, next_decoder)
+        self.__parse_input_module_options(opts)
+        # set up some summary vars
+        self.__read_bytes = 0
+        self.__raw_bytes_read = 0
+
+    @property
+    def raw_bytes_read(self):
+        return self.__raw_bytes_read
+    @property
+    def bytes_read(self):
+        return self.__read_bytes
+
+    @property
+    def file_name(self):
+        return self.__file_name
+
+    def __check_required_arguments(self, required_args, opts):
+        missing_args = []
+        for arg in required_args:
+            if arg not in opts:
+                missing_args += arg
+
+        if missing_args:
+            # get the module name
+            mod_name = opts[type]
+            import sys
+            for missing in missing_args:
+                sys.stderr.write("Missing required argument '{0}' for decoder module '{1}'\n".format(missing, mod_name))
+            raise TypeError("At least one missing argument in config.")
+
+    def __parse_input_module_options(self, opts):
+        self.__check_required_arguments(['filename'], opts)
+
+        # open the raw file & see how big it is
+        self.__file_name = opts['filename']
+        self.__raw_file = open(self.__file_name, 'rb')
+        self.__raw_file.seek(0,2) # seek to the end
+        self.__raw_file_size = self.__raw_file.tell() # get the file size
+        self.__raw_file.seek(0,0) # rewind back to the beginning
+
+        # if we're using compression, allow for decompression
+        self.__decomp_file = None
+        if opts.get('compressed', False) is True:
+            import gzip
+            self.__decomp_file = gzip.GzipFile(None, None, None, self.__raw_file)
+
+        # start the progbar
+        if opts.get('progress', False) is True:
+            from thirdparty.progressbar23.progressbar import Percentage, FileTransferSpeed, ETA, ProgressBar
+#            from progressbar import Percentage, FileTransferSpeed, ETA, ProgressBar
+            self.__pbar_widgets = [self.file_name, Percentage(), ' ', FileTransferSpeed(), ' ', ETA()]
+            self.__pbar = ProgressBar(widgets=self.__pbar_widgets, maxval=self.__raw_file_size)
+            self.__pbar.start()
+        else:
+            self.__pbar = None
+
+    def __input_file(self):
+        return self.__decomp_file or self.__raw_file
+
+    def read_from_input_file(self, bytes):
+        payload = self.__input_file().read(bytes)
+        self.__read_bytes += bytes
+        self.__raw_bytes_read = self.__raw_file.tell()
+        # update the prog bar
+        if self.__pbar is not None:
+            self.__pbar.update(self.raw_bytes_read)
+        return payload
+
+
+
+
+
+
+
+
